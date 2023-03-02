@@ -54,8 +54,8 @@ da1 = da1.assign_coords(coords={"lon": lon1})
 da2 = da2.assign_coords(coords={"lat": lat2})
 da2 = da2.assign_coords(coords={"lon": lon2})
 
-
 ds = xr.concat([da1, da2], dim='station')
+ds['T'].attrs = {"units": "years", "long_name": "return period", "hydrological_year": "01/09-31/08"}
 ds['valeur'].attrs = {"units": "m³/s", "description": "valeur ajustée avec la loi de Gumbel estimée par la méthode L-moments"}
 ds['int_conf_haut'].attrs = {"units": "m³/s", "description": "intervalle de confiance haut à 95% quantifiée par la méthode Bootstrap paramétrique"}
 ds['int_conf_bas'].attrs = {"units": "m³/s", "description": "intervalle de confiance bas à 95% quantifiée par la méthode Bootstrap paramétrique"}
