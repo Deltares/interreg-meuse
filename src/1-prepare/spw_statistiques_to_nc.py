@@ -195,13 +195,17 @@ ds = xr.Dataset(
 )
 
 # add attributes
-ds['T'].attrs['units'] = 'years'
 ds['T'].attrs['long_name'] = 'return period'
+ds['T'].attrs['units'] = 'years'
 ds['T'].attrs['hydrological_year'] = '01/10-30/09'
 
-ds['int_conf_haut'].attrs['long_name'] = 'intervalle de confiance haut à 95%'
-ds['int_conf_bas'].attrs['long_name'] = 'intervalle de confiance bas à 95%'
+ds['valeur'].attrs['long_name'] = 'estimation du débit'
+ds['valeur'].attrs['units'] = 'm³/s'
 
+ds['int_conf_haut'].attrs['long_name'] = 'intervalle de confiance haut à 95%'
+ds['int_conf_haut'].attrs['units'] = 'm³/s'
+ds['int_conf_bas'].attrs['long_name'] = 'intervalle de confiance bas à 95%'
+ds['int_conf_bas'].attrs['units'] = 'm³/s'
 
 ds = ds.squeeze()
 ds = ds.rename({"y": "station"})
