@@ -19,7 +19,6 @@ else:
     timestep_name = "hourly"
 
 # add years and hydrological years
-# add x y coordinates
 
 station = ['la_meuse_a_chooz', 'la_meuse_a_goncourt']
 lat = [7000411, 6796620]
@@ -40,9 +39,10 @@ for i in range(len(station)):
 
             # create a dataarray
             da = df.to_xarray()
-            da = da.assign(name=i)
+            da = da.assign(name=station[i])
             da = da.assign_coords(coords={"lat": lat[i]})
             da = da.assign_coords(coords={"lon": lon[i]})
+            print(da)
             da.to_netcdf(os.path.join(folder_preprocessed, timestep_name, station[i] + '.nc'))
 
 ds = xr.open_mfdataset(os.path.join(folder_preprocessed, timestep_name, '*.nc'), concat_dim='station', combine="nested")
@@ -50,4 +50,10 @@ ds['T'].attrs = {"units": "years", "long_name": "return period", "hydrological_y
 ds['valeur'].attrs = {"units": "m³/s", "description": "valeur ajustée avec la loi de Gumbel estimée par la méthode L-moments"}
 ds['int_conf_haut'].attrs = {"units": "m³/s", "description": "intervalle de confiance haut à 95% quantifiée par la méthode Bootstrap paramétrique"}
 ds['int_conf_bas'].attrs = {"units": "m³/s", "description": "intervalle de confiance bas à 95% quantifiée par la méthode Bootstrap paramétrique"}
-ds.to_netcdf(os.path.join(folder_final, 'hydro_statistiques_' + timestep_name + '.nc'), encoding={'_FillValue': np.nan})
+ds.to_netcdf(os.path.join(folder_final, 'hydro_statistiques_' + timestep_name + '.nc'),
+             encoding={"lat": {"dtype": "int32"},
+                       "lon": {"dtype": "int32"},
+                       "int_conf_bas": {"dtype": "float64"},
+                       "int_conf_haut": {"dtype": "float64"},
+                       "valeur" : {'dtype': "float64"}
+                       })#, encoding={'_FillValue': np.nan})
