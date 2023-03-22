@@ -11,12 +11,14 @@ from hydromt_wflow import WflowModel
 cdir = r'c:\Projects\interreg\local\interreg-meuse\wflow'
 case_debruin = 'run_debruin'
 case_makkink = 'run_makkink'
-
+case_penman = 'run_penman'
 staticmaps = r'eobs_v25.0e_1980_2020.nc'
 
 ds_debruin = xr.open_dataset(os.path.join(cdir, case_debruin, staticmaps))
 ds_makkink = xr.open_dataset(os.path.join(cdir, case_makkink, staticmaps))
-# ds_penman = xr.open_dataset(os.path.join(cdir, case_penman, staticmaps))
+ds_penman = xr.open_mfdataset(paths=os.path.join(cdir, case_penman, '*.nc'), combine='nested', concat_dim='time', engine='netcdf4')
+
+method = 'makkink'
 ds = ds_makkink
 
 # mean monthly values
@@ -49,6 +51,9 @@ for i in range(12):
     axes[i // 6, i % 6].set_xlabel('')
     axes[i // 6, i % 6].set_ylabel('')
 
+plt.tight_layout()
+plt.savefig(cdir + '/figures/monthly_pet_' + method + '.png')
+
 # mean annual values
 start_year = 1980
 end_year = 2021
@@ -80,6 +85,9 @@ for i in range(end_year + 1 - start_year):
 axes[3, 9].set_visible(False)
 axes[3, 10].set_visible(False)
 
+plt.tight_layout()
+plt.savefig(cdir + '/figures/yearly_pet_' + method + '.png')
+
 # daily pattern for one year
 fig, ax = plt.subplots()
 pet_daily = ds['pet'].sel(time=slice("1981-01-01", "1981-12-31")).mean(("lon", "lat"))
@@ -88,4 +96,4 @@ ax.set_ylabel('pet [mm]')
 ax.set_ylim([0, 4.7])
 
 plt.tight_layout()
-plt.show()
+plt.savefig(cdir + '/figures/1981_pet_' + method + '.png')
