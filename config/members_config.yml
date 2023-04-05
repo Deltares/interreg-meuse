@@ -1,0 +1,38 @@
+# Defining relative path locations and parameters to run the snakemake pipeline
+
+###########################################################################################
+#################################### General setting ######################################
+
+data_source: members_bias_corrected
+input_folder: a_raw
+
+# relative path to output
+#output_dir: output/
+data_dir:  /p/11208719-interreg/data/racmo
+cdo_grid:  /p/11208719-interreg/wflow/wflow_meuse_julia/inmaps_racmo/wflow_fews_meuse_grid.txt
+wflow_dir: /p/11208719-interreg/wflow
+
+#wflow model
+wflow_model: "d_manualcalib"
+wflow_params:
+    starttime: "1950-01-01T00:00:00"
+    endtime: "2014-12-31T00:00:00"
+wflow_base_toml: /p/11208719-interreg/wflow/d_manualcalib/run_manualcalib/run_manualcalib.toml
+julia_env_fn : ~/.julia/environments/wflow_062
+
+dts: "daily"
+members: ["r1i1p5f1", "r2i1p5f1", "r3i1p5f1", "r4i1p5f1", "r5i1p5f1", "r6i1p5f1", "r7i1p5f1", "r8i1p5f1", "r9i1p5f1", "r10i1p5f1", "r11i1p5f1", "r12i1p5f1", "r13i1p5f1", "r14i1p5f1", "r15i1p5f1", "r16i1p5f1"]
+
+variables:
+    pet:
+        daily: 86400
+        hourly: 3600
+        wflow_name: "pet"
+    precip:
+        daily: 86400
+        hourly: 3600
+        wflow_name: "precip"
+    t2m:
+        daily: -273.15
+        hourly: -273.15
+        wflow_name: "temp"

@@ -1,0 +1,126 @@
+### Import some useful python library
+import os
+import shutil
+import itertools
+import numpy as np
+from datetime import datetime
+from snakemake.io import Wildcards
+
+# Parsing the Snakemake config file (options)
+f_setup = config["data_dir"]
+f_input = config['data_source']
+f_data = config["input_folder"]
+f_wflow = config["wflow_dir"]
+
+#Data preprocessing directories
+f_unzipped = f_setup + "/" + f_input + "/a_raw"
+f_modif = f_setup + "/" + f_input + "/b_preprocess"
+f_wflow_input = f_setup + "/" + f_input + "/c_wflow"
+
+#wflow model specifics
+exp_name = config['data_source']
+model = config['wflow_model']
+year_start = np.int(datetime.strptime(config['wflow_params']['starttime'], '%Y-%m-%dT%H:%M:%S').year)
+year_end = np.int(datetime.strptime(config['wflow_params']['endtime'], '%Y-%m-%dT%H:%M:%S').year)
+
+def get_member_name(wildcards):
+    return config["members"][wildcards.member_nb]["name"]
+
+rule all:
+    input:
+        expand((f"{f_wflow_input}"+"/{dt}"+"/{member_nb}/"+"ds_merged_{year}.nc"), dt = config["dts"], member_nb = config["members"], year= np.arange(year_start,year_end+1)),   
+        expand(f"{f_wflow}"+f"/{model}"+f"/{exp_name}"+"_{dt}"+"/{member_nb}"+"/output.csv", dt = config["dts"], member_nb = config["members"])
+
+
+rule unzip:
+    input:
+        f_zip = os.path.join(f_setup, f_input, f_data, "{dt}",'data_08032023.zip')
+    params:
+        member_number = "{member_nb}",
+        #member_name=  get_member_name,
+        year_name = "{year}",
+        var_name = "{var}",
+        dt_name = "{dt}",
+        extract_to = f_unzipped
+    output:
+        #expand((f"{f_unzipped}"+"/{dt}"+"/full_ds"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}"+".nc"), dt = config["dts"], member_nb = config["members"], var = config["variables"], year= np.arange(year_start,year_end))
+        (f"{f_unzipped}"+"/{dt}"+"/full_ds"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}"+".nc")
+    group: "preprocess"
+    conda:
+        "envs/env_cdo.yaml"
+    script:
+        "scripts/unzip_knmi.py"
+
+rule cdo_regrid:
+    input:
+        f"{f_unzipped}"+"/{dt}"+"/full_ds"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}"+".nc"
+    params:
+        f_src = f_unzipped,
+        f_dst = f_modif,
+        grid_fn = config["cdo_grid"],
+        dt_step = "{dt}",
+        var_name = "{var}"
+    output:
+        fn_out = f"{f_modif}"+"/{dt}"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}_regrid_meuse"+".nc"
+    group: "preprocess"
+    conda:
+        "envs/env_cdo.yaml"
+    script:
+        "scripts/cdo_regrid_script.py"
+
+rule ds_convert_merge:
+    input:
+        fn_temp = f"{f_modif}"+"/{dt}"+"/{member_nb}/"+"t2m"+"/t2m.KNMI-{year}.{member_nb}_regrid_meuse"+".nc",
+        fn_pet = f"{f_modif}"+"/{dt}"+"/{member_nb}/"+"pet"+"/pet.KNMI-{year}.{member_nb}_regrid_meuse"+".nc",
+        fn_precip = f"{f_modif}"+"/{dt}"+"/{member_nb}/"+"precip"+"/precip.KNMI-{year}.{member_nb}_regrid_meuse"+".nc"
+    params:
+        conv_params = config["variables"],
+        dt_step = "{dt}",
+        year_name = "{year}"
+    output:
+        fn_out = f"{f_wflow_input}"+"/{dt}"+"/{member_nb}/"+"ds_merged_{year}.nc"
+    group: "xr_merge"
+    conda:
+        "envs/env_hydromt_wflow.yaml"
+    script:
+        "scripts/convert_nc.py"
+
+rule update_toml_wflow:
+    input:
+        fn_in = f"{f_wflow_input}"+"/{dt}"+"/{member_nb}/"+f"ds_merged_{year_start}.nc"
+    params:
+        wflow_params = config["wflow_params"], #Change this to have the size of the years if they are missing
+        wflow_base_toml = config["wflow_base_toml"],
+        timestep = "{dt}",
+        exp_name = config['data_source'],
+        model = config['wflow_model'], 
+        fn_wflow = f"{f_wflow}",
+        fn_forcing = f"{f_wflow_input}"+"/{dt}"+"/{member_nb}",
+        member_nb = "{member_nb}",
+        start_path = f"{f_wflow}"+f"/{model}"+f"/{exp_name}"+"_{dt}"+"/{member_nb}"
+    output:
+        fn_out = f"{f_wflow}"+f"/{model}"+f"/{exp_name}"+"_{dt}"+"/{member_nb}"+f"/{exp_name}"+"_{dt}"+"_{member_nb}.toml"
+    conda:
+        "envs/env_hydromt_wflow.yaml"
+    script:
+        "scripts/update_toml_wflow.py"
+    
+rule run_wflow:
+    input: #We need the tomls!
+        fn_toml = f"{f_wflow}"+f"/{model}"+f"/{exp_name}"+"_{dt}"+"/{member_nb}"+f"/{exp_name}"+"_{dt}"+"_{member_nb}.toml",
+        fn_in = [(f"{f_wflow_input}"+"/{dt}"+"/{member_nb}/"+f"ds_merged_{years}.nc") for years in np.arange(year_start,year_end+1)]
+    params:
+        wd = f"{f_wflow}"+f"/{model}"+f"/{exp_name}"+"_{dt}"+"/{member_nb}",
+        julia_env_fn = config["julia_env_fn"]
+    output:
+        csv_file = f"{f_wflow}"+f"/{model}"+f"/{exp_name}"+"_{dt}"+"/{member_nb}"+"/output.csv"
+    shell:
+        """
+        julia --threads 4 --project={params.julia_env_fn} -e "using Wflow; Wflow.run()" "{input.fn_toml}" 
+        """
+
+#rule eva: #to be added
+
+
+
+#read also; https://taylorreiter.github.io/2020-02-03-How-to-use-snakemake-checkpoints-to-extract-files-from-an-archive/
