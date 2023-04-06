@@ -23,8 +23,12 @@ model = config['wflow_model']
 year_start = np.int(datetime.strptime(config['wflow_params']['starttime'], '%Y-%m-%dT%H:%M:%S').year)
 year_end = np.int(datetime.strptime(config['wflow_params']['endtime'], '%Y-%m-%dT%H:%M:%S').year)
 
-def get_member_name(wildcards):
-    return config["members"][wildcards.member_nb]["name"]
+# def get_member_name(wildcards):
+#     return config["members"][wildcards.member_nb]["name"]
+# def get_zip_name(wildcards):
+#     return config["dts"][wildcards.dts]["name_zip"]
+def get_zip_main_fn_name(wildcards):
+    return config["dts"][wildcards.dts]["name_main"]
 
 rule all:
     input:
@@ -34,22 +38,22 @@ rule all:
 
 rule unzip:
     input:
-        f_zip = os.path.join(f_setup, f_input, f_data, "{dt}",'data_08032023.zip')
+        f_zip = os.path.join(f_setup, f_input, f_data, "{dt}",'data.zip')
     params:
         member_number = "{member_nb}",
-        #member_name=  get_member_name,
+        main_folder =  get_zip_main_fn_name,
         year_name = "{year}",
         var_name = "{var}",
         dt_name = "{dt}",
         extract_to = f_unzipped
     output:
         #expand((f"{f_unzipped}"+"/{dt}"+"/full_ds"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}"+".nc"), dt = config["dts"], member_nb = config["members"], var = config["variables"], year= np.arange(year_start,year_end))
-        (f"{f_unzipped}"+"/{dt}"+"/full_ds"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}"+".nc")
+        (f"{f_unzipped}"+"/{dt}"+"/ full_ds"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}"+".nc")
     group: "preprocess"
     conda:
         "envs/env_cdo.yaml"
     script:
-        "scripts/unzip_knmi.py"
+        "src/preprocess/unzip_knmi.py"
 
 rule cdo_regrid:
     input:
@@ -66,7 +70,7 @@ rule cdo_regrid:
     conda:
         "envs/env_cdo.yaml"
     script:
-        "scripts/cdo_regrid_script.py"
+        "src/preprocess/cdo_regrid_script.py"
 
 rule ds_convert_merge:
     input:
@@ -83,7 +87,7 @@ rule ds_convert_merge:
     conda:
         "envs/env_hydromt_wflow.yaml"
     script:
-        "scripts/convert_nc.py"
+        "src/preprocess/convert_nc.py"
 
 rule update_toml_wflow:
     input:
@@ -103,7 +107,7 @@ rule update_toml_wflow:
     conda:
         "envs/env_hydromt_wflow.yaml"
     script:
-        "scripts/update_toml_wflow.py"
+        "src/model_building/update_toml_wflow.py"
     
 rule run_wflow:
     input: #We need the tomls!
