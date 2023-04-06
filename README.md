@@ -20,3 +20,7 @@ Project Organization
         ├── preprocess 
         ├── model_building 
         ├── postprocess 
+
+Information
+--------------------
+To find more information on how to run the snakemake pipeline on the cluster, you can have a look at ./notebooks/run_cluster.ipynb for tips
