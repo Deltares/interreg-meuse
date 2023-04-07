@@ -80,20 +80,20 @@ stations_be = [5, 6, 503, 501, 801, 802, 803, 701, 702, 703, 704, 903,1002, 1003
 #%% obs data
 
 #all daily
-ds_obs = xr.open_dataset(r'd:\Promotie\Data\qobs_xr.nc')
-# ds_obs = xr.open_dataset(r"p:\11205237-grade\wflow\wflow_meuse_julia\_obs\qobs_xr.nc")
+# ds_obs = xr.open_dataset(r'd:\Promotie\Data\qobs_xr.nc')
+ds_obs = xr.open_dataset(r"p:\11208719-interreg\data\observed_streamflow_grade\qobs_xr.nc")
 
 #belgian hourly 
-qobs_h = xr.open_dataset(r"d:\GRADE\Kennisontwikkeling\Products_2021\era5_Martijn\Meuse\qobs_hourly_belgian_catch.nc")
-# qobs_h = xr.open_dataset(r"p:\11205237-grade\wflow\wflow_meuse_julia\_obs\qobs_hourly_belgian_catch.nc")
+# qobs_h = xr.open_dataset(r"d:\GRADE\Kennisontwikkeling\Products_2021\era5_Martijn\Meuse\qobs_hourly_belgian_catch.nc")
+qobs_h = xr.open_dataset(r"p:\11208719-interreg\data\observed_streamflow_grade\qobs_hourly_belgian_catch.nc")
 qobs_h = qobs_h.rename({"catchments":"stations"})
 
 #french hourly data
-qobs_h_fr = xr.open_dataset(r"p:\11205237-grade\wflow\wflow_meuse_julia\data_hourly_hydroeau\FR-Hydro-hourly-2005_2022.nc")
+qobs_h_fr = xr.open_dataset(r"p:\11208719-interreg\data\observed_streamflow_grade\FR-Hydro-hourly-2005_2022.nc")
 qobs_h_fr = qobs_h_fr.rename({"Q":"Qobs_m3s", "wflow_id":"stations"})
 
 #borgharen
-stpieter = pd.read_csv(r"p:\11205237-grade\wflow\wflow_meuse_julia\data_rws\20221205_ST_PIETER\05_OUTPUT\ST_PIETER.csv", index_col=0, parse_dates=True, header=0)
+stpieter = pd.read_csv(r"p:\11208719-interreg\data\observed_streamflow_grade\20221205_ST_PIETER\05_OUTPUT\ST_PIETER.csv", index_col=0, parse_dates=True, header=0)
 stpieter = stpieter.resample("H").mean()
 stpieter_xr = stpieter.to_xarray()
 stpieter_xr = stpieter_xr.rename({"value":"Qobs_m3s"})
