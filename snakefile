@@ -29,6 +29,8 @@ year_end = np.int(datetime.strptime(config['wflow_params']['endtime'], '%Y-%m-%d
 #     return config["dts"][wildcards.dts]["name_zip"]
 def get_zip_main_fn_name(wildcards):
     return config["dts"][wildcards.dts]["name_main"]
+def get_extension(wildcards):
+    return config["dts"][wildcards.dts]["ext"]
 
 rule all:
     input:
@@ -42,6 +44,7 @@ rule unzip:
     params:
         member_number = "{member_nb}",
         main_folder =  get_zip_main_fn_name,
+        ext =  get_extension,
         year_name = "{year}",
         var_name = "{var}",
         dt_name = "{dt}",
