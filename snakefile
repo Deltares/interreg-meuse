@@ -7,6 +7,7 @@ from datetime import datetime
 from snakemake.io import Wildcards
 
 # Parsing the Snakemake config file (options)
+f_proj = config["proj_dir"]
 f_setup = config["data_dir"]
 f_input = config['data_source']
 f_data = config["input_folder"]
@@ -16,6 +17,7 @@ f_wflow = config["wflow_dir"]
 f_unzipped = f_setup + "/" + f_input + "/a_raw"
 f_modif = f_setup + "/" + f_input + "/b_preprocess"
 f_wflow_input = f_setup + "/" + f_input + "/c_wflow"
+f_figures = f_proj + "/Figures/" +  f_input
 
 #wflow model specifics
 exp_name = config['data_source']
@@ -28,14 +30,16 @@ year_end = np.int(datetime.strptime(config['wflow_params']['endtime'], '%Y-%m-%d
 # def get_zip_name(wildcards):
 #     return config["dts"][wildcards.dts]["name_zip"]
 def get_zip_main_fn_name(wildcards):
-    return config["dts"][wildcards.dts]["name_main"]
+    return config["dts"][wildcards.dt]["name_main"]
 def get_extension(wildcards):
-    return config["dts"][wildcards.dts]["ext"]
+    return config["dts"][wildcards.dt]["ext"]
 
 rule all:
     input:
         expand((f"{f_wflow_input}"+"/{dt}"+"/{member_nb}/"+"ds_merged_{year}.nc"), dt = config["dts"], member_nb = config["members"], year= np.arange(year_start,year_end+1)),   
-        expand(f"{f_wflow}"+f"/{model}"+f"/{exp_name}"+"_{dt}"+"/{member_nb}"+"/output.csv", dt = config["dts"], member_nb = config["members"])
+        expand(f"{f_wflow}"+f"/{model}"+f"/{exp_name}"+"_{dt}"+"/{member_nb}"+"/output.csv", dt = config["dts"], member_nb = config["members"]),
+        expand(f"{f_figures}"+"/{dt}"+"/{member_nb}"+"/precip_sum.png", dt = config["dts"], member_nb = config["members"]),
+        expand(f"{f_unzipped}"+"/{dt}"+"/ full_ds"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}"+".nc", dt = config["dts"], member_nb = config["members"], var = config["variables"], year= np.arange(year_start,year_end))
 
 
 rule unzip:
@@ -60,7 +64,7 @@ rule unzip:
 
 rule cdo_regrid:
     input:
-        f"{f_unzipped}"+"/{dt}"+"/full_ds"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}"+".nc"
+        (f"{f_unzipped}"+"/{dt}"+"/full_ds"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}"+".nc")
     params:
         f_src = f_unzipped,
         f_dst = f_modif,
@@ -83,7 +87,7 @@ rule ds_convert_merge:
     params:
         conv_params = config["variables"],
         dt_step = "{dt}",
-        year_name = "{year}"
+        year_name = "{year}", 
     output:
         fn_out = f"{f_wflow_input}"+"/{dt}"+"/{member_nb}/"+"ds_merged_{year}.nc"
     group: "xr_merge"
@@ -91,6 +95,20 @@ rule ds_convert_merge:
         "envs/env_hydromt_wflow.yaml"
     script:
         "src/preprocess/convert_nc.py"
+
+rule figure_forcing:
+    input:
+        fn_forcing = [(f"{f_wflow_input}"+"/{dt}"+"/{member_nb}/"+f"ds_merged_{years}.nc") for years in np.arange(year_start,year_end+1)] 
+    params:
+        year_random = np.random.randint(year_start,year_end+1)
+    output:
+        f"{f_figures}"+"/{dt}"+"/{member_nb}"+"/precip_sum.png",
+        f"{f_figures}"+"/{dt}"+"/{member_nb}"+"/pet_sum.png",   
+        f"{f_figures}"+"/{dt}"+"/{member_nb}"+"/temp_max.png", 
+    conda:
+        "envs/env_hydromt_wflow.yaml"
+    script:
+        "src/preprocess/convert_nc_figures.py"  
 
 rule update_toml_wflow:
     input:

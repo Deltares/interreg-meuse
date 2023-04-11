@@ -1,5 +1,4 @@
 import os, glob
-import glob
 from cdo import *
 import sys
 
