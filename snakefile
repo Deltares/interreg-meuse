@@ -39,7 +39,7 @@ rule all:
         expand((f"{f_wflow_input}"+"/{dt}"+"/{member_nb}/"+"ds_merged_{year}.nc"), dt = config["dts"], member_nb = config["members"], year= np.arange(year_start,year_end+1)),   
         expand(f"{f_wflow}"+f"/{model}"+f"/{exp_name}"+"_{dt}"+"/{member_nb}"+"/output.csv", dt = config["dts"], member_nb = config["members"]),
         expand(f"{f_figures}"+"/{dt}"+"/{member_nb}"+"/precip_sum.png", dt = config["dts"], member_nb = config["members"]),
-        expand(f"{f_unzipped}"+"/{dt}"+"/ full_ds"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}"+".nc", dt = config["dts"], member_nb = config["members"], var = config["variables"], year= np.arange(year_start,year_end))
+        expand(f"{f_unzipped}"+"/{dt}"+"/full_ds"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}"+".nc", dt = config["dts"], member_nb = config["members"], var = config["variables"], year= np.arange(year_start,year_end))
 
 
 rule unzip:
@@ -55,7 +55,7 @@ rule unzip:
         extract_to = f_unzipped
     output:
         #expand((f"{f_unzipped}"+"/{dt}"+"/full_ds"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}"+".nc"), dt = config["dts"], member_nb = config["members"], var = config["variables"], year= np.arange(year_start,year_end))
-        (f"{f_unzipped}"+"/{dt}"+"/ full_ds"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}"+".nc")
+        (f"{f_unzipped}"+"/{dt}"+"/full_ds"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}"+".nc")
     group: "preprocess"
     conda:
         "envs/env_cdo.yaml"
