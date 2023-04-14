@@ -15,4 +15,4 @@ dependencies:
   - pip
   - python>=3.8
   - pip:
-    - snakemake==7.8.0
+    - snakemake

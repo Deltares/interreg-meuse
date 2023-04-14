@@ -22,8 +22,8 @@ f_figures = f_proj + "/Figures/" +  f_input
 #wflow model specifics
 exp_name = config['data_source']
 model = config['wflow_model']
-year_start = np.int(datetime.strptime(config['wflow_params']['starttime'], '%Y-%m-%dT%H:%M:%S').year)
-year_end = np.int(datetime.strptime(config['wflow_params']['endtime'], '%Y-%m-%dT%H:%M:%S').year)
+year_start = int(datetime.strptime(config['wflow_params']['starttime'], '%Y-%m-%dT%H:%M:%S').year)
+year_end = int(datetime.strptime(config['wflow_params']['endtime'], '%Y-%m-%dT%H:%M:%S').year)
 
 # def get_member_name(wildcards):
 #     return config["members"][wildcards.member_nb]["name"]
