@@ -15,8 +15,13 @@ print("outfile[0]", outfile[0])
 
 #We load the random file
 fn = all_files[0].split("/ds_merged")[0]
-fn_out = outfile[0].split(f"/precip_sum_{outfile}.png")[0]
+fn_out = outfile[0].split("/precip_sum.png")[0]
 fn_file = os.path.join(fn,f"ds_merged_{year_random}.nc")
+
+print("------- Checking what we got ------")
+print("fn", fn)
+print("fn_out", fn_out)
+print("fn_file", fn_file)
 
 ds = xr.open_dataset(fn_file, chunks='auto')
 

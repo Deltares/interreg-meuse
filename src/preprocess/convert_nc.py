@@ -7,7 +7,7 @@ file_temp = snakemake.input.fn_temp
 file_pet = snakemake.input.fn_pet
 file_precip = snakemake.input.fn_precip
 conv_params = snakemake.params.conv_params
-path_dict = snakemake.params.path_dict
+# path_dict = snakemake.params.path_dict
 year_name = snakemake.params.year_name
 dt = snakemake.params.dt_step
 outfile_path = str(snakemake.output)
@@ -18,7 +18,7 @@ print("file_temp", file_temp)
 print("file_pet", file_pet)
 print("file_precip", file_precip)
 print("conv_param", conv_params)
-print("path_dict", path_dict)
+# print("path_dict", path_dict)
 print("dt", dt)
 print("year_name", year_name)
 
