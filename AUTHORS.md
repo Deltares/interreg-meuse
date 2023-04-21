@@ -9,4 +9,5 @@ Project Lead
 Project Contributors
 ------------
 
-None.
+* Alessia Riveros <alessia.riveros@deltares.nl>
+* Anaïs Couasnon <anais.couasnon@deltares.nl>
