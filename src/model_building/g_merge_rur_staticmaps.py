@@ -3,9 +3,10 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 
-#  LakeOutflowFunc, LakeStorFunc, KsatHorFrac, RiverDepth, wflow_riverwidth, KsatVer, MaxLeakage,
+# updates the following parameters
+#  KsatHorFrac, RiverDepth, wflow_riverwidth, KsatVer, MaxLeakage,
 
-folder_meuse = r'p:\11208719-interreg\wflow\f_spwgauges'
+folder_meuse = r'p:\11208719-interreg\wflow\g_rur'
 folder_rur = r'p:\11208719-interreg\data\catchment_rur'
 
 file_meuse = 'staticmaps.nc'
@@ -42,14 +43,6 @@ ds_rur['lon'] = lon_sel
 
 # create a copy of the original wflow meuse staticmaps which will be modified
 ds_meuse_mod = ds_meuse.copy(deep=True)
-
-# lake_outflowfunc
-ds_meuse_mod["lake_outflowfunc"] = np.nan
-ds_meuse_mod["lake_outflowfunc"] = ds_rur['LakeOutflowFunc']
-
-# lake_storfunc
-ds_meuse_mod["lake_storfunc"] = np.nan
-ds_meuse_mod["lake_storfunc"] = ds_rur['LakeStorFunc']
 
 
 def update_var(old_var, new_var):
@@ -111,4 +104,4 @@ ds_meuse_mod["ksathorfrac_sub"].plot()
 plt.close()
 
 folder_save = r'p:\11208719-interreg\wflow\g_rur'
-ds_meuse_mod.to_netcdf(os.path.join(folder_save, 'staticmaps.py'))
+ds_meuse_mod.to_netcdf(os.path.join(folder_save, 'staticmaps.nc'))
