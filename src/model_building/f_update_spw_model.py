@@ -27,7 +27,7 @@ mod.staticgeoms
 gauges_path_ge20_manual = r"p:\11208186-spw\Data\Debits\Q_jour\Stations_Q_jour_ge20_manual.csv"
 
 # basename = "stations_obs"
-basename = "gauges_spw"
+basename = "spw"
 mod.setup_gauges(gauges_fn=gauges_path_ge20_manual, index_col="id", derive_subcatch=True, basename=basename,)
 
 root_updated = os.path.join(pdir, case_update, run_folder_update)
@@ -51,8 +51,8 @@ shutil.move(os.path.join(pdir, case_update, run_folder_update, 'staticgeoms'),
             )
 
 # write run bat file
-# path_env_julia = r"c:\Users\bouaziz\.julia\environments\wflow_floodplain1d"
-path_env_julia = r"c:\Users\riveros\.julia\environments\v1.6"
+path_env_julia = r"c:\Users\bouaziz\.julia\environments\wflow_floodplain1d"
+# path_env_julia = r"c:\Users\riveros\.julia\environments\v1.6"
 
 bat_str = f"""
 julia  -t 4 --project={path_env_julia} -e "using Wflow; Wflow.run()" "{run_folder_update}\{run_folder_update}.toml"
