@@ -23,10 +23,20 @@ mod.staticmaps
 mod.staticgeoms
 
 gauges_path_ge20_manual = r"p:\11208186-spw\Data\Debits\Q_jour\Stations_Q_jour_ge20_manual.csv"
-
-# basename = "stations_obs"
 basename = "spw"
-mod.setup_gauges(gauges_fn=gauges_path_ge20_manual, index_col="id", derive_subcatch=True, basename=basename,)
+gauge_toml_header = ["Qriv_spw", "Q_spw"]
+gauge_toml_param = ["lateral.river.q_channel_av", "lateral.river.q_av"]
+
+for o in range(len(gauge_toml_param)):
+    gauge_toml_dict = {
+                    "header": gauge_toml_header[o],
+                    "map": f"gauges_{basename}",
+                    "parameter": gauge_toml_param[o],
+                }
+    mod.config["csv"]["column"].append(gauge_toml_dict)
+
+mod.setup_gauges(gauges_fn=gauges_path_ge20_manual, index_col="id", derive_subcatch=True, basename=basename,
+                 gauge_toml_header=gauge_toml_header, gauge_toml_param=gauge_toml_param)
 
 root_updated = os.path.join(pdir, case_update, run_folder_update)
 mod.set_root(root_updated)
