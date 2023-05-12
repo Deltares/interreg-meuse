@@ -104,4 +104,4 @@ ds_meuse_mod["ksathorfrac_sub"].plot()
 plt.close()
 
 folder_save = r'p:\11208719-interreg\wflow\g_rur'
-ds_meuse_mod.to_netcdf(os.path.join(folder_save, 'staticmaps.nc'))
+ds_meuse_mod.to_netcdf(os.path.join(folder_save, 'staticmaps_updated.nc'))
