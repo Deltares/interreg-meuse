@@ -7,6 +7,7 @@ import pandas as pd
 import numpy as np
 import geopandas as gpd
 from hydromt_wflow import WflowModel
+import glob
 
 pdir = r"p:\11208719-interreg\wflow"
 case_base = "h_spwgauges"
@@ -48,6 +49,13 @@ mod.set_root(root_updated)
 mod.write_staticmaps()
 mod.write_staticgeoms()
 mod.write_config(config_name=f"{run_folder_update}.toml")
+
+#copy of lake files 
+lake_files = glob.glob(os.path.join(pdir, case_base, "lake*.csv"))
+if len(lake_files)>0:
+    for lake_file in lake_files:
+        dst_lake_file = os.path.join(pdir, case_update, os.path.basename(lake_file))
+        shutil.copy(lake_file, dst_lake_file)
 
 # remove run_default dir
 if len(os.listdir(os.path.join(pdir, case_update, run_folder_update, 'run_default'))) == 0:
