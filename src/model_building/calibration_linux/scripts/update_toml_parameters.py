@@ -15,11 +15,20 @@ mod = WflowModel(root, config_fn=os.path.basename(toml_default_fn), mode="r+")
 # Update parameter value in toml file
 for param in paramset:
     if param == "ksathorfrac":
-        mod.set_config("input.lateral.subsurface.ksathorfrac.value", float(paramset['ksathorfrac']))
+        #value
+        # mod.set_config("input.lateral.subsurface.ksathorfrac.value", float(paramset['ksathorfrac']))
+        #mult
+        mod.set_config("input.lateral.subsurface.ksathorfrac.scale", float(paramset['ksathorfrac']))
     elif param == "tt" or param == "ttm" or param =="maxleakage":
         mod.set_config(f"input.vertical.{param}.value", float(paramset[param]))
     elif param == "floodplain_volume":
         mod.set_config(f"input.lateral.river.floodplain.volume.scale", float(paramset["floodplain_volume"]))
+    elif param == "storage_wood":
+        mod.set_config(f"input.vertical.{param}.offset", float(paramset[param]))
+    elif param == "n": #land river and floodplain 
+        mod.set_config(f"input.lateral.land.{param}.scale", float(paramset[param]))
+        mod.set_config(f"input.lateral.river.{param}.scale", float(paramset[param]))
+        mod.set_config(f"input.lateral.river.floodplain.{param}.scale", float(paramset[param]))
     else:
         mod.set_config(f"input.vertical.{param}.scale", float(paramset[param]))
 

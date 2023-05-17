@@ -60,8 +60,10 @@ rule run_wflow:
     shell:
         # """ julia -e "using Wflow; Wflow.run()" "{input.toml_fid}" """
         # """ julia -t 4 --project=~/.julia/environments/wflow_062 -e "using Wflow; Wflow.run()" "{input.toml_fid}" """
-        """ julia -t 4 --project=/u/bouaziz/.julia/environments/wflow_062 -e "using Wflow; Wflow.run()" "{input.toml_fid}" """
+        # """ julia -t 4 --project=/u/bouaziz/.julia/environments/wflow_062 -e "using Wflow; Wflow.run()" "{input.toml_fid}" """
         # """ "p:/11205237-grade/wflow/Julia/wflow_cli/v0.6.1/bin/wflow_cli.exe" "{input.toml_fid}" """
+        #threading improved 
+        """ julia -t 4 --project=/u/bouaziz/.julia/environments/wflow_threads2 -e "using Wflow; Wflow.run()" "{input.toml_fid}" """
 
 # Rule to analyse and plot wflow model run results --> final output
 rule analyze_results:

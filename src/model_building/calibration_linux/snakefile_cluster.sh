@@ -1,10 +1,10 @@
 #!/bin/bash
-#$ -q normal-e5-c7
+#$ -q normal-e3-c7
 #$ -cwd
 #$ -m bea
 #$ -pe distrib 1
 #$ -V
-#$ -N snake_wflow1
+#$ -N snake_wflow_int
 #$ -j yes
 
 
@@ -19,7 +19,7 @@ cd "${ROOT}"
 snakemake -s Snakefile --configfile config/snake_config_model.yml --dag | dot -Tpng > dag_all.png
 
 snakemake --unlock -s Snakefile --configfile config/snake_config_model.yml
-snakemake all -s Snakefile --configfile config/snake_config_model.yml --jobs 20 --latency-wait 60 --wait-for-files --rerun-incomplete --cluster "$SNAKE_SUBMIT_JOB_SPW" --directory $PWD
+snakemake all -s Snakefile --configfile config/snake_config_model.yml --jobs 20 --latency-wait 60 --wait-for-files --rerun-incomplete --cluster "$SNAKE_SUBMIT_JOB_INTERREG" --directory $PWD
 
 # --resources mem_mb=70000
 # see dry run (-n) for number of jobs. -q (quiet -- summary) 
