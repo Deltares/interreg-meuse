@@ -3,7 +3,7 @@
 root: "/p/11208719-interreg/wflow/j_waterschaplimburg"
 case_dir: "runs_calibration_linux_01"
 config_fn: "wflow_sbm_calibration.toml"
-calib_params_fn: "calibration_parameters_short.csv"
+calib_params_fn: "calibration_parameters.csv"
 
 # Time horizon calibration and evaluation
 cal_start: 2006-01-01T00:00:00 
