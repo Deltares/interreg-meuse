@@ -28,7 +28,7 @@ for param in paramset:
     elif param == "n": #land river and floodplain 
         mod.set_config(f"input.lateral.land.{param}.scale", float(paramset[param]))
         mod.set_config(f"input.lateral.river.{param}.scale", float(paramset[param]))
-        mod.set_config(f"input.lateral.river.floodplain.{param}.scale", float(paramset[param]))
+        # mod.set_config(f"input.lateral.river.floodplain.{param}.scale", float(paramset[param]))
     else:
         mod.set_config(f"input.vertical.{param}.scale", float(paramset[param]))
 
