@@ -1,0 +1,86 @@
+import shutil
+import os
+from snakemake.utils import Paramspace
+import pandas as pd
+
+# Paramspace with model calibration parameters
+model_root = config["root"]
+case_dir = config["case_dir"]
+model_toml = config["config_fn"]
+obs_ts_fn = config["obs_ts_fn"]
+obs_catalog = config["obs_catalog"]
+obs_fn = config["obs_fn"]
+calibration_parameters = config["calib_params_fn"]
+# calibration_period = config["calibration"]
+# evaluation_period = config["evaluation"]
+cal_start = config["cal_start"]
+cal_end = config["cal_end"]
+eval_start = config["eval_start"]
+eval_end = config["eval_end"]
+
+# periods = config["periods"]
+### Dictionary elements from the config based on wildcards
+# def get_period(wildcards):
+#     return config["periods"][wildcards.period]
+
+paramspace = Paramspace(pd.read_csv(f"config/{calibration_parameters}", sep=","), filename_params="*")
+# paramspace = Paramspace(pd.read_csv("config/calibration_parameters.csv", sep=","))
+
+# Master rule: end with all model run and analysed with saving a output plot
+rule all:
+    #NB: careful with f"{model_root}/" + "{params}" first part is python, second part is snakemake!!!
+    # input: expand(("{model_root}/{case_dir}/test_{params}.png"), params=paramspace.instance_patterns)
+    # input: expand((f"{model_root}/{case_dir}/"+"output_{params}.csv"), params=paramspace.instance_patterns)
+    # input: expand((f"{model_root}/{case_dir}/plots/"+"test_{params}.png"), params=paramspace.instance_patterns)
+    input: f"{model_root}/{case_dir}/Results/stations_performance.nc",
+
+# Rule to update TOML file settings for calibration
+rule update_toml:
+    input:
+        staticmaps_fn = f"{model_root}/staticmaps.nc",
+    output:
+        toml_fid = f"{model_root}/{case_dir}/wflow_sbm_{paramspace.wildcard_pattern}.toml"
+    params:
+        calibration_parameters = paramspace.instance,
+        calibration_pattern = paramspace.wildcard_pattern,
+        toml_default = f"{model_root}/{case_dir}/wflow_sbm_calibration.toml"
+    # conda:
+        # "envs/hydromt_wflow.yml"
+    script:
+        "scripts/update_toml_parameters.py"
+
+# Rule to run the wflow model
+rule run_wflow:
+    input:
+        toml_fid = f"{model_root}/{case_dir}/wflow_sbm_{paramspace.wildcard_pattern}.toml"
+    output:
+        csv_file = f"{model_root}/{case_dir}/output_{paramspace.wildcard_pattern}.csv"
+    threads:
+        4
+    shell:
+        # """ julia -e "using Wflow; Wflow.run()" "{input.toml_fid}" """
+        # """ julia -t 4 --project=~/.julia/environments/wflow_062 -e "using Wflow; Wflow.run()" "{input.toml_fid}" """
+        """ julia -t 4 --project=/u/bouaziz/.julia/environments/wflow_062 -e "using Wflow; Wflow.run()" "{input.toml_fid}" """
+        # """ "p:/11205237-grade/wflow/Julia/wflow_cli/v0.6.1/bin/wflow_cli.exe" "{input.toml_fid}" """
+
+# Rule to analyse and plot wflow model run results --> final output
+rule analyze_results:
+    input:
+        # csv_file = f"{model_root}/{case_dir}/output_{paramspace.wildcard_pattern}.csv",
+        csv_files = expand((f"{model_root}/{case_dir}/"+"output_{params}.csv"), params=paramspace.instance_patterns),
+    output: 
+        # output_png = f"{model_root}/{case_dir}/plots/test_{paramspace.wildcard_pattern}.png"
+        output_png = f"{model_root}/{case_dir}/Results/stations_performance.nc",
+    params:
+        obs_ts_fn = obs_ts_fn,
+        obs_fn = obs_fn,
+        cal_start = cal_start,
+        cal_end = cal_end,
+        eval_start = eval_start,
+        eval_end = eval_end,
+        toml_default = f"{model_root}/{case_dir}/wflow_sbm_calibration.toml",
+        obs_catalog = obs_catalog,
+    # conda:
+    #     "envs/hydromt_wflow.yml"
+    script: 
+        "scripts/analyze_calibration_runs.py"

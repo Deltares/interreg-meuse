@@ -1,0 +1,283 @@
+meta:
+  root: /p/wflow_global/hydromt
+  version: 2022.7
+
+walous_2021:
+  crs: 3812
+  data_type: RasterDataset
+  driver: raster
+  kwargs:
+    chunks:
+      x: 600
+      y: 600
+  meta:
+    category: landuse
+    source_author:
+    source_license: 
+    source_url: 
+    source_version: 
+  path: /p/11208186-spw/Data/Walous_2021/WAL_OCS_2021_specific_config.tif
+
+walous_2021_10m:
+  crs: 3812
+  data_type: RasterDataset
+  driver: netcdf
+  kwargs:
+    chunks:
+      x: 600
+      y: 600
+      drop_variables: 'lambert_conformal_conic'
+  meta:
+    category: landuse
+    source_author:
+    source_license: 
+    source_url: 
+    source_version: 
+  path: /p/11208186-spw/Data/Walous_2021/WAL_OCS_2021_specific_config_10m.nc 
+    
+walous_2021_50m:
+  crs: 3812
+  data_type: RasterDataset
+  driver: netcdf
+  kwargs:
+    chunks:
+      x: 600
+      y: 600
+      drop_variables: 'lambert_conformal_conic'
+  meta:
+    category: landuse
+    source_author:
+    source_license: 
+    source_url: 
+    source_version: 
+  path: /p/11208186-spw/Data/Walous_2021/WAL_OCS_2021_specific_config_50m.nc 
+
+walous_2021_250m:
+  crs: 3812
+  data_type: RasterDataset
+  driver: netcdf
+  kwargs:
+    chunks:
+      x: 600
+      y: 600
+      drop_variables: 'lambert_conformal_conic'
+  meta:
+    category: landuse
+    source_author:
+    source_license: 
+    source_url: 
+    source_version: 
+  path: /p/11208186-spw/Data/Walous_2021/WAL_OCS_2021_specific_config_250m.nc     
+
+walous_2021_wgs_250:
+  crs: 4326
+  data_type: RasterDataset
+  driver: netcdf
+  kwargs:
+    chunks:
+      x: 600
+      y: 600
+  meta:
+    category: landuse resampled and reprojected to soilgrids resolution. 
+    source_author:
+    source_license: 
+    source_url: 
+    source_version: 
+  path: /p/11208186-spw/Data/Walous_2021/reproject/walous_2021*.nc
+  
+corine:
+  alias: corine_2018_v2020_u1
+corine_2018_v2020_u1:
+  data_type: RasterDataset
+  driver: raster
+  kwargs:
+    chunks:
+      x: 6000
+      y: 6000
+  meta:
+    category: landuse
+    source_author: European Environment Agency
+    source_license: https://land.copernicus.eu/pan-european/corine-land-cover/clc2018?tab=metadata
+    source_url: https://land.copernicus.eu/pan-european/corine-land-cover/clc2018
+    source_version: v.2020_20u1
+  path: landuse/corine/CLC2018_CLC2018_V2018_20.tif
+  
+inmaps_meuse_eobs_v25:
+  crs: 4326
+  data_type: RasterDataset
+  driver: netcdf
+  kwargs:
+    chunks:
+      time: 100
+    combine: by_coords
+    parallel: true
+  meta:
+    category: meteo
+    paper_doi: 10.1029/2017JD028200
+    paper_ref: Cornes et al (2018)
+    source_license: https://surfobs.climate.copernicus.eu/dataaccess/access_eobs.php#datafiles
+    source_url: https://surfobs.climate.copernicus.eu/dataaccess/access_eobs.php#datafiles
+    source_version: 25.0e
+  path: /p/11208186-spw/Models/Wflow/wflow_wallonie/eobs_v25.0e_1980_2020.nc
+  rename:
+    precip: precip
+    
+meuse-hydro_timeseries:
+  path: /p/11205237-grade/wflow/wflow_meuse_julia/_obs/qobs_xr_gds_nl.nc
+  data_type: GeoDataset
+  driver: netcdf
+  crs: 4326
+  rename:
+    Q: run 
+  meta:
+    category: observed data
+    source_url: 
+    source_author: Bouaziz
+    source_version: 
+    source_info: Stations data collected during PhD Laurène
+    
+meuse-hydro_timeseries_spw:
+  path: /p/11208186-spw/Data/Debits/Q_jour/hydro_daily.nc
+  data_type: GeoDataset
+  driver: netcdf
+  crs: 4326
+  kwargs:
+    drop_variables: 'index'
+  rename:
+    id: index
+    Q: run
+  meta:
+    category: observed data
+    source_url: 
+    source_author: 
+    source_version: 
+    source_info: Stations data - daily 
+
+meuse-hydro_timeseries_spw_selection100km2:
+  path: /p/11208186-spw/Data/Debits/Q_jour/hydro_daily_selection_100km2_xy.nc
+  data_type: GeoDataset
+  driver: netcdf
+  crs: 4326
+  rename:
+    id: index
+    Q: run
+  meta:
+    category: observed data
+    source_url: 
+    source_author: 
+    source_version: 
+    source_info: Stations data - daily - selection of stations with upstream area above 100km2 and manual adjustment of x and y location 
+
+meuse-hydro_timeseries_spw_selection100km2_Q:
+  path: /p/11208186-spw/Data/Debits/Q_jour/hydro_daily_selection_100km2_xy_.nc
+  data_type: GeoDataset
+  driver: netcdf
+  crs: 4326
+  rename:
+    id: index
+  meta:
+    category: observed data
+    source_url: 
+    source_author: 
+    source_version: 
+    source_info: Stations data - daily - selection of stations with upstream area above 100km2 and manual adjustment of x and y location 
+
+
+soilgrids_aardewerk_sl7_is_sl6:
+  crs: 4326
+  data_type: RasterDataset
+  driver: netcdf
+  kwargs:
+    chunks:
+      x: 2400
+      y: 2400
+  meta:
+    category: soil
+    notes: "merge of soilgrids and aardewerk data prepared by Arcadis based on Aardewerk Wallonia dataset. sl7 is copy  if sl6"
+    paper_doi: 
+    paper_ref: 
+    source_license: 
+    source_url: 
+    source_version: 2023
+  path: /p/11208186-spw/Data/soils_aardewerk_map/merged/*.nc
+  rename:
+    bd_sl7_copy_sl6: bd_sl7
+    oc_sl7_copy_sl6: oc_sl7
+    ph_sl7_copy_sl6: ph_sl7
+    sndppt_sl7_copy_sl6: sndppt_sl7
+    clyppt_sl7_copy_sl6: clyppt_sl7
+    sltppt_sl7_copy_sl6: sltppt_sl7
+    
+soilgrids_aardewerk_sl7_is_soilgrids:
+  crs: 4326
+  data_type: RasterDataset
+  driver: netcdf
+  kwargs:
+    chunks:
+      x: 2400
+      y: 2400
+  meta:
+    category: soil
+    notes: "merge of soilgrids and aardewerk data prepared by Arcadis based on Aardewerk Wallonia dataset. sl7 is copy of soilgrids sl7"
+    paper_doi: 
+    paper_ref: 
+    source_license: 
+    source_url: 
+    source_version: 2023
+  path: /p/11208186-spw/Data/soils_aardewerk_map/merged/*.nc
+  rename:
+    bd_sl7_soilgrids: bd_sl7
+    oc_sl7_soilgrids: oc_sl7
+    ph_sl7_soilgrids: ph_sl7
+    sndppt_sl7_soilgrids: sndppt_sl7
+    clyppt_sl7_soilgrids: clyppt_sl7
+    sltppt_sl7_soilgrids: sltppt_sl7
+
+aardewerk:
+  crs: 31370
+  data_type: RasterDataset
+  driver: raster
+  kwargs:
+    chunks:
+      x: 2400
+      y: 2400
+  meta:
+    category: soil
+    notes: "made by Arcadis based on Aardewerk Wallonia dataset"
+    paper_doi: 
+    paper_ref: 
+    source_license: 
+    source_url: 
+    source_version: 2023
+  path: /p/11208186-spw/Data/soils_aardewerk_map/Cartes TIF/*.tif
+  rename:
+    text-a-0: clyppt_sl1
+    text-a-5: clyppt_sl2
+    text-a-15: clyppt_sl3
+    text-a-30: clyppt_sl4
+    text-a-60: clyppt_sl5
+    text-a-100: clyppt_sl6
+    cot-0: oc_sl1
+    cot-5: oc_sl2
+    cot-15: oc_sl3
+    cot-30: oc_sl4
+    cot-60: oc_sl5
+    cot-100: oc_sl6
+    PH-0: ph_sl1
+    ph-5: ph_sl2
+    ph-15: ph_sl3
+    ph-30: ph_sl4
+    ph-60: ph_sl5
+    ph-100: ph_sl6
+    text-l-0: sltppt_sl1
+    text-l-5: sltppt_sl2
+    text-l-15: sltppt_sl3
+    text-l-30: sltppt_sl4
+    text-l-60: sltppt_sl5
+    text-l-100: sltppt_sl6
+    text-s-0: sndppt_sl1
+    text-s-5: sndppt_sl2
+    text-s-15: sndppt_sl3
+    text-s-30: sndppt_sl4
+    text-s-60: sndppt_sl5
+    text-s-100: sndppt_sl6

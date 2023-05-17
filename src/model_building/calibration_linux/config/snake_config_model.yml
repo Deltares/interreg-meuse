@@ -1,0 +1,17 @@
+### General setting ###
+# Path to where the wflow model will be stored (include the project name)
+root: "/p/11208186-spw/Models/Wflow/wflow_wallonie_rivers_gauges_global_fldplain_rz100km2_aardewerk1_lu_riv10"
+case_dir: "runs_calibration_linux_01"
+config_fn: "wflow_sbm_calibration.toml"
+calib_params_fn: "calibration_parameters.csv"
+
+# Time horizon calibration and evaluation
+cal_start: 2010-01-01T00:00:00 
+cal_end: 2015-12-31T00:00:00
+eval_start: 2015-01-01T00:00:00 
+eval_end: 2021-12-31T00:00:00
+
+obs_ts_fn: meuse-hydro_timeseries_spw_selection100km2_Q
+obs_fn: stations_obs
+
+obs_catalog: config/spw.yml
