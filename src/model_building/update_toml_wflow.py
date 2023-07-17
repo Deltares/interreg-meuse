@@ -17,6 +17,9 @@ member_nb = snakemake.params.member_nb
 base_model_toml = snakemake.params.wflow_base_toml
 start_path = snakemake.params.start_path
 fn_ds = str(snakemake.input.fn_in)
+# conv_params = snakemake.params.conv_params
+# fn_orography = snakemake.params.fn_orography
+# fn_idx = snakemake.params.fn_idx
 
 print("------- Checking what we got ------")
 print("starttime", starttime)
@@ -30,6 +33,8 @@ print("member_nb", member_nb)
 print("base_model_toml", base_model_toml)
 print("current path", start_path)
 print("ds path", fn_ds)
+# print("fn_orography", fn_orography)
+# print("fn_idx", fn_idx)
 
 #%% 
 #Getting the frequency from the netcdf file
@@ -64,12 +69,37 @@ mod.set_config("input.path_static", f"{fn_static}")
 mod.set_config("input.path_forcing", f"{fn_forcing_all}")
 mod.set_config("state.path_output", f"{fn_state_output}")  #outstate
 
+# mod.set_config("forcing.path_orography", f"{fn_orography}")
+# mod.set_config("forcing.path_idx", f"{fn_idx}")
+
+# # Now we instead adapt the netcdf with the arguments 
+#  #"scale":2, "offset": 0})
+
+# if conv_params["precip"]['conversion'] == 'additive':
+#         mod.set_config("input.vertical.precipitation", {'netcdf':{'variable': {'name' :conv_params["precip"]["wflow_name"]}}, 'scale':1, 'offset': conv_params["precip"][timestep] }) #"scale":2, "offset": 0})
+# if conv_params["precip"]['conversion'] == 'multiplicative':
+#         mod.set_config("input.vertical.precipitation", {'netcdf':{'variable': {'name' :conv_params["precip"]["wflow_name"]}}, 'scale':conv_params["precip"][timestep], 'offset': 0 }) #"scale":2, "offset": 0})
+
+# if conv_params["t2m"]['conversion'] == 'additive':
+#         mod.set_config("input.vertical.temperature", {'netcdf':{'variable': {'name' :conv_params["t2m"]["wflow_name"]}}, 'scale':1, 'offset': conv_params["t2m"][timestep] }) #"scale":2, "offset": 0})
+# if conv_params["t2m"]['conversion'] == 'multiplicative':
+#         mod.set_config("input.vertical.temperature", {'netcdf':{'variable': {'name' :conv_params["precip"]["wflow_name"]}}, 'scale':conv_params["t2m"][timestep], 'offset': 0 }) #"scale":2, "offset": 0})
+
+# if conv_params["pet"]['conversion'] == 'additive':
+#         mod.set_config("input.vertical.potential_evaporation", {'netcdf':{'variable': {'name' :conv_params["pet"]["wflow_name"]}}, 'scale':1, 'offset': conv_params["pet"][timestep] }) #"scale":2, "offset": 0})
+# if conv_params["pet"]['conversion'] == 'multiplicative':
+#         mod.set_config("input.vertical.potential_evaporation", {'netcdf':{'variable': {'name' :conv_params["pet"]["wflow_name"]}}, 'scale':conv_params["pet"][timestep], 'offset': 0 }) #"scale":2, "offset": 0})
+
 mod.set_config("input.vertical.precipitation", "precip")
 mod.set_config("input.vertical.temperature", "temp")
 mod.set_config("input.vertical.potential_evaporation", "pet")
 
 mod.set_config("csv.path", f"{fn_csv}")
 mod.set_config("path_log", f"{fn_log}")
+
+if timestep == "daily":
+        #We drop the netcdf output file
+        mod.set_config("output.path", "output.nc")
 
 #%%We write the output somewhere else
 fn_output = os.path.join(fn, model, exp_name+'_'+timestep, member_nb)

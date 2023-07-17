@@ -103,6 +103,10 @@ data/5-visualization
 
 # exclude figures
 reports/figures
+old
 
 # temporary snakemake files
 .snakemake
+.vscode
+
+*.out

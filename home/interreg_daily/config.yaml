@@ -1,0 +1,79 @@
+#------
+latency-wait: 60
+keep-going: True
+rerun-incomplete: True
+printshellcmds: True
+scheduler: greedy
+restart-times: 2
+use-conda: True
+#-------
+# Cluster submission
+#jobname: "snakejob.{name}.{jobid}.sh"    # Provide a custom name for the jobscript that is submitted to the cluster.
+jobs: 50
+default-resources:
+  - account=hyd
+  - qos=sbatch
+  - time=1440
+  - partition="1vcpu"
+  - threads=1
+cluster:
+  sbatch
+    --qos={resources.qos}
+    --account={resources.account}
+    --time={resources.time}
+    --ntasks={resources.threads}
+    --partition={resources.partition}
+    # --output=jobs/{rule}/slurm_%x_%j.out
+    # --error=jobs/{rule}/slurm_%x_%j.err
+set-resources:
+  - unzip:partition="1vcpu"
+  - cdo_regrid:partition="4vcpu"
+  - ds_convert_merge:partition="4vcpu"
+  - figure_forcing:partition="4vcpu"
+  - update_toml_wflow:partition="1vcpu"
+  - run_wflow:partition="4vcpu"
+  - unzip:threads=1
+  - cdo_regrid:threads=4
+  - ds_convert_merge:threads=4
+  - figure_forcing:threads=4
+  - update_toml_wflow:threads=1
+  - run_wflow:threads=4
+  - unzip:time=10
+  - cdo_regrid:time=15
+  - ds_convert_merge:time=30
+  - figure_forcing:time=15
+  - update_toml_wflow:time=10
+  - run_wflow:time=720
+# set-threads:
+#   - unzip=4
+#   - cdo_regrid=4
+#   - ds_convert_merge=48
+#   - figure_forcing=4
+#   - run_wflow=4     
+
+#jobs: 20
+#restart-times: 2
+#local-cores: 1
+
+#Not sure what this is doing so removing them
+#max-jobs-per-second: 10
+#max-status-checks-per-second: 1
+
+# # Cluster submission
+# jobname: "{rule}.{jobid}"              # Provide a custom name for the jobscript that is submitted to the cluster.
+# max-jobs-per-second: 1                 #Maximal number of cluster/drmaa jobs per second, default is 10, fractions allowed.
+# max-status-checks-per-second: 10       #Maximal number of job status checks per second, default is 10
+# jobs: 400                              #Use at most N CPU cluster/cloud jobs in parallel.
+
+# cluster:
+  # sbatch
+    # --partition={resources.partition}
+    # --qos={resources.qos}
+    # --cpus-per-task={threads}
+    # --mem={resources.mem_mb}
+    # --time={resources.time}
+    # --job-name=smk-{rule}-{wildcards}
+    # --output=logs/{rule}/{rule}-{wildcards}-%j.out
+    # --error=logs/{rule}/{rule}-{wildcards}-.%j.err
+    # --account=hyd
+    # --parsable

@@ -34,6 +34,13 @@ def get_zip_main_fn_name(wildcards):
 def get_extension(wildcards):
     return config["dts"][wildcards.dt]["ext"]
 
+#We create the folder we need to log the output from the snakemake pipeline
+onstart:
+    print("##### Creating profile pipeline #####\n") 
+    print("\t Creating jobs output subfolders...\n")
+    shell("mkdir -p jobs/all jobs/unzip jobs/cdo_regrid jobs/ds_convert_merge jobs/figure_forcing jobs/update_toml_wflow jobs/run_wflow")
+
+
 rule all:
     input:
         expand((f"{f_wflow_input}"+"/{dt}"+"/{member_nb}/"+"ds_merged_{year}.nc"), dt = config["dts"], member_nb = config["members"], year= np.arange(year_start,year_end+1)),   
@@ -56,7 +63,7 @@ rule unzip:
     output:
         #expand((f"{f_unzipped}"+"/{dt}"+"/full_ds"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}"+".nc"), dt = config["dts"], member_nb = config["members"], var = config["variables"], year= np.arange(year_start,year_end))
         (f"{f_unzipped}"+"/{dt}"+"/full_ds"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}"+".nc")
-    group: "preprocess"
+    #group: "preprocess"
     conda:
         "envs/env_cdo.yaml"
     script:
@@ -73,7 +80,7 @@ rule cdo_regrid:
         var_name = "{var}"
     output:
         fn_out = f"{f_modif}"+"/{dt}"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}_regrid_meuse"+".nc"
-    group: "preprocess"
+    #group: "preprocess"
     conda:
         "envs/env_cdo.yaml"
     script:
@@ -90,7 +97,7 @@ rule ds_convert_merge:
         year_name = "{year}", 
     output:
         fn_out = f"{f_wflow_input}"+"/{dt}"+"/{member_nb}/"+"ds_merged_{year}.nc"
-    group: "xr_merge"
+    #group: "xr_merge"
     conda:
         "envs/env_hydromt_wflow.yaml"
     script:
