@@ -64,7 +64,7 @@ def convert_to_wflow_units(ds, dict_vars, dt):
 
 #%%
 #We open the datasets
-ds_merge = xr.open_mfdataset([file_temp, file_pet, file_precip], chunks='auto')
+ds_merge = xr.open_mfdataset([file_temp, file_pet, file_precip], chunks='auto') # chunks = {"time":1000} #ds.chunks
 
 if 'height' in ds_merge.coords.keys():
     ds_merge = ds_merge.squeeze().drop_vars('height') #We remove the height dimension - not needed here
