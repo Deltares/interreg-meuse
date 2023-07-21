@@ -16,13 +16,19 @@ from hydromt_wflow import WflowModel
 
 fs = 8
 
+caserun = "manualcalib"
+caserun = "snakecal03"
+
 Folder_p = r"p:\11208719-interreg\wflow\d_manualcalib"
+Folder_p = r"p:\11208719-interreg\wflow\m_snakecal03"
 
 Folder_p_fews_data= r"p:\archivedprojects\11205237-grade\wflow\wflow_meuse_julia\data_juli_2021\fews_export"
 Folder_p_fews_data_jan= r"p:\archivedprojects\11205237-grade\wflow\wflow_meuse_julia\data_juli_2021\vanJan"
 Folder_p_spw_download= r"p:\archivedprojects\11205237-grade\wflow\wflow_meuse_julia\data_juli_2021\SPW_website_download"
 
 Folder_plots = r"d:\interreg\Plots\july_2021_routing"
+Folder_plots = r"d:\interreg\Plots\july_2021_routing_model_m_snakecal03"
+
 
 
 #%% model
@@ -32,32 +38,33 @@ runs = {
     "kinematic": {
         "longname": "kinematic",
         "color": "#a6cee3",
-        "case": "run_manualcalib_july_2021_kinematic",
-        "config_fn": "run_manualcalib_july_2021_regnie.toml",
+        "case": f"run_{caserun}_july_2021_kinematic",
+        "config_fn": f"run_{caserun}_july_2021_regnie.toml",
             },
 
     "loc.iner": {
         "longname": "loc.iner",
         "color": "#1f78b4",
-        "case": "run_manualcalib_july_2021_1d",
-        "config_fn": "run_manualcalib_july_2021_regnie.toml",
+        "case": f"run_{caserun}_july_2021_1d",
+        "config_fn": f"run_{caserun}_july_2021_regnie.toml",
              },
     
     "loc.iner.flpl1d": {
         "longname": "loc.iner.flpl1d",
         "color": "#b2df8a",
-        "case": "run_manualcalib_july_2021",
-        "config_fn": "run_manualcalib_july_2021_regnie.toml",
+        "case": f"run_{caserun}_july_2021",
+        "config_fn": f"run_{caserun}_july_2021_regnie.toml",
              },
     
     "loc.iner1d2d": {
         "longname": "loc.iner1d2d",
         "color": "#33a02c",
-        "case": "run_manualcalib_july_2021_1d2d",
-        "config_fn": "run_manualcalib_july_2021_regnie.toml",
+        "case": f"run_{caserun}_july_2021_1d2d",
+        "config_fn": f"run_{caserun}_july_2021_regnie.toml",
              },
     
 }
+
 
 for r in runs:
     print(r)
@@ -73,7 +80,9 @@ for r in runs:
 
 #%%
 #read csv directly to later plot precip (ids are then P_{id} for full upstream precip)
-df_kin = pd.read_csv(os.path.join(Folder_p, "run_manualcalib_july_2021_kinematic", "run_july2021_regnie", "output.csv"), index_col=0, parse_dates=True, header=0)
+# df_kin = pd.read_csv(os.path.join(Folder_p, "run_manualcalib_july_2021_kinematic", "run_july2021_regnie", "output.csv"), index_col=0, parse_dates=True, header=0)
+df_kin = pd.read_csv(os.path.join(Folder_p, f"run_{caserun}_july_2021_kinematic", "run_july2021_regnie", "output.csv"), index_col=0, parse_dates=True, header=0)
+
 #todo: also add the output file from the radar run to have precipitation averaged over each subcatchment from this dataframe
 # df_kin_radar = pd.read_csv(os.path.join(Folder_p, "run_july2021_radar", "output.csv"), index_col=0, parse_dates=True, header=0)
 

@@ -112,12 +112,36 @@ qobs_h = xr.merge([qobs_h, stpieter_xr.sel(time=slice(None, "2019-12-31"))])
 Folder_p = r"p:\11208719-interreg\wflow"
 
 model_runs = {
-    "default": {"case":"a_floodplain1d", 
-                "folder": "run_default"},
+    # "default": {"case":"a_floodplain1d", 
+    #             "folder": "run_default"},
     
-    "rz20": {"case": "b_rootzone",
-             "folder": "run_rootingdepth_rp_20"},
-    
+    # "rz20": {"case": "b_rootzone",
+    #          "folder": "run_rootingdepth_rp_20"},
+
+    #d_manualcalib and j_waterschaplim should be the same for the ourthe
+
+    # "manualcal": {"case": "d_manualcalib",
+    #          "folder": "run_manualcalib"},
+
+
+    # "watlim": {"case": "j_waterschaplimburg",
+    #          "folder": "run_waterschaplimburg"},
+
+    #before cal
+    "before": {"case": "j_waterschaplimburg",
+             "folder": "run_waterschaplimburg"},
+
+    # #after cal
+    # "after": {"case": "k_snakecal",
+    #          "folder": "run_snakecal"},
+
+    #after cal 2 (not using maxq in the obj funciton but using cum instead)
+    # "after": {"case": "l_snakecal02",
+    #          "folder": "run_snakecal02"},
+
+    #after cal 3 (same as cal02 but now also with french stations)
+    "after": {"case": "m_snakecal03",
+             "folder": "run_snakecal03"},
 }
 
 
@@ -143,7 +167,11 @@ plot_colors = colors[:len(runs_dict)]
 
 #%%
 
-caserun = "rootzone_rp20"
+# caserun = "rootzone_rp20"
+caserun = "calibration_hourly"
+caserun = "check_models_d_and_j"
+caserun = "calibration_hourly_snake02"
+caserun = "calibration_hourly_snake03"
 
 Folder_plots = r"d:\interreg\Plots" + "\\" + f"{caserun}"
 

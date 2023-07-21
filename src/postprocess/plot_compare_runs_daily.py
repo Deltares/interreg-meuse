@@ -110,18 +110,46 @@ Folder_p = r"p:\11208719-interreg\wflow"
 
 #routing runs
 model_runs = {
-    "kinematic": {"case":"d_manualcalib", 
-                "folder": "run_manualcalib_daily_eobs24_kinematic"},
+    # "kinematic": {"case":"d_manualcalib", 
+    #             "folder": "run_manualcalib_daily_eobs24_kinematic"},
     
-    "loc.iner": {"case": "d_manualcalib",
-             "folder": "run_manualcalib_daily_eobs24_1d"},
+    # "loc.iner": {"case": "d_manualcalib",
+    #          "folder": "run_manualcalib_daily_eobs24_1d"},
     
-    "loc.iner.flpl1d": {"case":"d_manualcalib", 
-                "folder": "run_manualcalib_daily_eobs24"},
+    # "loc.iner.flpl1d": {"case":"d_manualcalib", 
+    #             "folder": "run_manualcalib_daily_eobs24"},
     
-    "loc.iner1d2d": {"case": "d_manualcalib",
-             "folder": "run_manualcalib_daily_eobs24_1d2d"},
-    
+    # "loc.iner1d2d": {"case": "d_manualcalib",
+    #          "folder": "run_manualcalib_daily_eobs24_1d2d"},
+
+#eobs24 25
+
+    # "eobs24": {"case": "j_waterschaplimburg",
+    #          "folder": "run_waterschaplimburg_eobs24"},
+
+    # "eobs25": {"case": "j_waterschaplimburg",
+    #          "folder": "run_waterschaplimburg_eobs25"},
+
+#before and after calibration
+    # "before": {"case": "j_waterschaplimburg",
+    #          "folder": "run_waterschaplimburg_eobs25"},
+
+    # #after cal
+    # "after": {"case": "k_snakecal",
+    #          "folder": "run_snakecal_eobs25"},
+
+#before and after calibration
+    "before": {"case": "j_waterschaplimburg",
+             "folder": "run_waterschaplimburg_eobs25"},
+
+    # #after cal 02
+    # "after": {"case": "l_snakecal02",
+    #          "folder": "run_snakecal02_eobs25"},
+
+    # #after cal 03
+    "after": {"case": "m_snakecal03",
+             "folder": "run_snakecal03_eobs25"},
+
 }
 
 ### prepare dataset to make plots
@@ -145,7 +173,12 @@ for key in model_runs.keys():
 
 plot_colors = colors[:len(runs_dict)]
 
-caserun = "routing"   
+# caserun = "routing"   
+# caserun = "calibration_daily"   
+# caserun = "eobs_24_25"   
+caserun = "calibration_daily_snake02"   
+caserun = "calibration_daily_snake03"   
+
 Folder_plots = r"d:\interreg\Plots" + "\\" + f"{caserun}"
 
 if not os.path.exists(Folder_plots):
