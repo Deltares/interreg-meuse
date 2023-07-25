@@ -135,7 +135,8 @@ rule update_toml_wflow:
         fn_wflow = f"{f_wflow}",
         fn_forcing = f"{f_wflow_input}"+"/{dt}"+"/{member_nb}",
         member_nb = "{member_nb}",
-        start_path = f"{f_wflow}"+f"/{model}"+f"/{exp_name}"+"_{dt}"+"/{member_nb}"
+        start_path = f"{f_wflow}"+f"/{model}"+f"/{exp_name}"+"_{dt}"+"/{member_nb}",
+        fn_path_input = config['wflow_path_input']
     output:
         fn_out = f"{f_wflow}"+f"/{model}"+f"/{exp_name}"+"_{dt}"+"/{member_nb}"+f"/{exp_name}"+"_{dt}"+"_{member_nb}.toml"
     conda:

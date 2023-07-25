@@ -17,6 +17,7 @@ member_nb = snakemake.params.member_nb
 base_model_toml = snakemake.params.wflow_base_toml
 start_path = snakemake.params.start_path
 fn_ds = str(snakemake.input.fn_in)
+fn_path_input = snakemake.params.fn_path_input
 # conv_params = snakemake.params.conv_params
 # fn_orography = snakemake.params.fn_orography
 # fn_idx = snakemake.params.fn_idx
@@ -33,6 +34,7 @@ print("member_nb", member_nb)
 print("base_model_toml", base_model_toml)
 print("current path", start_path)
 print("ds path", fn_ds)
+print("fn_path_input", fn_path_input)
 # print("fn_orography", fn_orography)
 # print("fn_idx", fn_idx)
 
@@ -48,6 +50,7 @@ fn_forcing_all = os.path.abspath(os.path.join(fn_forcing, '*.nc'))
 fn_state_output = os.path.abspath(os.path.join(fn, model, exp_name+'_'+timestep, member_nb,'outstate','outstates.nc'))
 fn_csv = os.path.abspath(os.path.join(fn, model, exp_name+'_'+timestep, member_nb, 'output.csv'))
 fn_log = os.path.abspath(os.path.join(fn, model, exp_name+'_'+timestep, member_nb, 'log.txt'))
+fn_path_input = os.path.abspath(os.path.join(fn_path_input))
 
 # fn_static = os.path.relpath(fn_static, start_path)
 # fn_forcing_all = os.path.relpath(fn_forcing_all, start_path)
@@ -96,6 +99,9 @@ mod.set_config("input.vertical.potential_evaporation", "pet")
 
 mod.set_config("csv.path", f"{fn_csv}")
 mod.set_config("path_log", f"{fn_log}")
+
+mod.set_config("model.reinit", "false")
+mod.set_config("state.path_input", f"{fn_path_input}")
 
 if timestep == "daily":
         #We drop the netcdf output file
