@@ -18,6 +18,7 @@ wflow_params:                       #wflow params to adapt
     starttime: "1950-01-01T00:00:00"
     endtime: "2014-12-31T00:00:00"
 wflow_base_toml: /p/11208719-interreg/wflow/o_rwsinfo/run_rwsinfo/run_rwsinfo.toml
+wflow_path_input: /p/11208719-interreg/wflow/o_rwsinfo/run_rwsinfo_eobs25/outstate/outstates.nc
 julia_env_fn : ~/.julia/environments/wflow_063 #location of the wflow julia environment - USER DEPENDENT!!
 
 #################################### data ######################################

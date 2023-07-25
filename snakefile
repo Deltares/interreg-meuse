@@ -35,10 +35,10 @@ def get_extension(wildcards):
     return config["dts"][wildcards.dt]["ext"]
 
 #We create the folder we need to log the output from the snakemake pipeline
-onstart:
-    print("##### Creating profile pipeline #####\n") 
-    print("\t Creating jobs output subfolders...\n")
-    shell("mkdir -p jobs/all jobs/unzip jobs/cdo_regrid jobs/ds_convert_merge jobs/figure_forcing jobs/update_toml_wflow jobs/run_wflow")
+# onstart:
+#     print("##### Creating profile pipeline #####\n") 
+#     print("\t Creating jobs output subfolders...\n")
+#     shell("mkdir -p jobs/all jobs/unzip jobs/cdo_regrid jobs/ds_convert_merge jobs/figure_forcing jobs/update_toml_wflow jobs/run_wflow")
 
 
 rule all:
@@ -63,7 +63,9 @@ rule unzip:
     output:
         #expand((f"{f_unzipped}"+"/{dt}"+"/full_ds"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}"+".nc"), dt = config["dts"], member_nb = config["members"], var = config["variables"], year= np.arange(year_start,year_end))
         (f"{f_unzipped}"+"/{dt}"+"/full_ds"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}"+".nc")
-    #group: "preprocess"
+    resources:
+        mem_mb=1,
+        disk_mb=1
     conda:
         "envs/env_cdo.yaml"
     script:
@@ -80,7 +82,9 @@ rule cdo_regrid:
         var_name = "{var}"
     output:
         fn_out = f"{f_modif}"+"/{dt}"+"/{member_nb}/"+"{var}"+"/{var}"+".KNMI-{year}.{member_nb}_regrid_meuse"+".nc"
-    #group: "preprocess"
+    resources:
+        mem_mb=1,
+        disk_mb=1
     conda:
         "envs/env_cdo.yaml"
     script:
@@ -97,7 +101,9 @@ rule ds_convert_merge:
         year_name = "{year}", 
     output:
         fn_out = f"{f_wflow_input}"+"/{dt}"+"/{member_nb}/"+"ds_merged_{year}.nc"
-    #group: "xr_merge"
+    resources:
+        mem_mb=1,
+        disk_mb=1
     conda:
         "envs/env_hydromt_wflow.yaml"
     script:
@@ -129,7 +135,8 @@ rule update_toml_wflow:
         fn_wflow = f"{f_wflow}",
         fn_forcing = f"{f_wflow_input}"+"/{dt}"+"/{member_nb}",
         member_nb = "{member_nb}",
-        start_path = f"{f_wflow}"+f"/{model}"+f"/{exp_name}"+"_{dt}"+"/{member_nb}"
+        start_path = f"{f_wflow}"+f"/{model}"+f"/{exp_name}"+"_{dt}"+"/{member_nb}",
+        fn_path_input = config['wflow_path_input']
     output:
         fn_out = f"{f_wflow}"+f"/{model}"+f"/{exp_name}"+"_{dt}"+"/{member_nb}"+f"/{exp_name}"+"_{dt}"+"_{member_nb}.toml"
     conda:

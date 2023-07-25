@@ -104,9 +104,11 @@ data/5-visualization
 # exclude figures
 reports/figures
 old
+logs
 
 # temporary snakemake files
 .snakemake
 .vscode
 
 *.out
+check.py
