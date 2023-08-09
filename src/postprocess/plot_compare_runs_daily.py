@@ -178,6 +178,7 @@ plot_colors = colors[:len(runs_dict)]
 # caserun = "eobs_24_25"   
 caserun = "calibration_daily_snake02"   
 caserun = "calibration_daily_snake03"   
+caserun = "calibration_daily_snake03_ourthe"   
 
 Folder_plots = r"d:\interreg\Plots" + "\\" + f"{caserun}"
 
@@ -239,6 +240,8 @@ for station_name, station_id in stations_dic.items():
     #dropna for signature calculations. 
     #start later for for warming up
     dsq = ds['Q'].sel(index = station_id, runs = runs_sel + ["Obs."]).sel(time = slice('2000-01-01', '2020-12-31')).to_dataset().dropna(dim='time')
+    #change time for Ourthe plot comparison with hourly run  2005-2017
+    dsq = ds['Q'].sel(index = station_id, runs = runs_sel + ["Obs."]).sel(time = slice('2005-01-01', '2017-12-31')).to_dataset().dropna(dim='time')
     if len(dsq.time)>366*2:
         plot_signatures(dsq, runs_sel, plot_colors, Folder_plots, f"{station_name}_{station_id}" , save=True, window=7)
         plt.close()
