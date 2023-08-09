@@ -13,7 +13,7 @@ source /u/bouaziz/miniconda3/bin/activate hydromt-wflow
 
 #conda config --set channel_priority strict
 
-ROOT="/p/11208186-spw/src/calibration_linux"
+ROOT="/u/bouaziz/interreg-meuse/src/model_building/calibration_linux"
 cd "${ROOT}"
 
 python scripts/combine_calib_results.py

@@ -183,6 +183,39 @@ meuse-hydro_timeseries_spw_selection100km2_Q:
     source_info: Stations data - daily - selection of stations with upstream area above 100km2 and manual adjustment of x and y location 
 
 
+meuse-hydro_timeseries_spw_hourly:
+  path: p:/11208719-interreg/data/spw/Discharge/c_final/hourly_spw_discharges.nc
+  data_type: GeoDataset
+  driver: netcdf
+  crs: 4326
+  kwargs:
+    drop_variables: 'index'
+  rename:
+    id: index
+  meta:
+    category: observed data
+    source_url: 
+    source_author: 
+    source_version: 
+    source_info: Stations data - hourly - selection of stations with upstream area above 20 km2
+
+meuse-hydro_timeseries_hydroportail_hourly:
+  path: p:/11208719-interreg/data/observed_streamflow_grade/FR-Hydro-hourly-2005_2022.nc
+  data_type: GeoDataset
+  driver: netcdf
+  crs: 4326
+  kwargs:
+    drop_variables: 'index'
+  rename:
+    wflow_id: index
+  meta:
+    category: observed data
+    source_url: 
+    source_author: 
+    source_version: 
+    source_info: Stations data - hourly - downloaded from hydroportail. 
+
+
 soilgrids_aardewerk_sl7_is_sl6:
   crs: 4326
   data_type: RasterDataset
