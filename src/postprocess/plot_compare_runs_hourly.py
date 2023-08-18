@@ -172,6 +172,7 @@ caserun = "calibration_hourly"
 caserun = "check_models_d_and_j"
 caserun = "calibration_hourly_snake02"
 caserun = "calibration_hourly_snake03"
+caserun = "calibration_hourly_snake03_2006_2017"
 
 Folder_plots = r"d:\interreg\Plots" + "\\" + f"{caserun}"
 
@@ -233,7 +234,9 @@ for station_name, station_id in stations_dic.items():
         #make plot using function
         #dropna for signature calculations. 
         #start later for for warming up
-        dsq = ds['Q'].sel(stations = station_id).sel(time = slice('2006-01-01', "2015-12-31"), runs=runs_sel + ["Obs."]).to_dataset().dropna(dim='time')
+        # dsq = ds['Q'].sel(stations = station_id).sel(time = slice('2006-01-01', "2015-12-31"), runs=runs_sel + ["Obs."]).to_dataset().dropna(dim='time')
+        # change end time to 2017
+        dsq = ds['Q'].sel(stations = station_id).sel(time = slice('2006-01-01', "2017-12-31"), runs=runs_sel + ["Obs."]).to_dataset().dropna(dim='time')
         #TODO: somehow xr.infer_freq(dsq.time) does not work for Borgharen..... 
         plot_signatures(dsq, runs_sel + ["Obs."], plot_colors, Folder_plots, station_name, save=True, window=7*24)
         plt.close()
