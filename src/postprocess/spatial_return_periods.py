@@ -27,6 +27,14 @@ def stacking_ensemble(ds_sub):
     stacked = stacked.rename_dims({'z':'time'})
     return stacked
 
+    
+def def_encoding(ds):
+    if isinstance(ds, xr.DataArray):
+        encoding = {v: {"zlib": True} for v in ds.name}
+    if isinstance(ds, xr.Dataset):
+        encoding = {v: {"zlib": True} for v in ds.data_vars.keys()}
+    return encoding
+
 #%% Code
 if __name__ == "__main__":
     #%%
@@ -36,7 +44,7 @@ if __name__ == "__main__":
     # We import the modelled data
     #Folder_start = r"p:/11208719-interreg"
     Folder_start = r"/p/11208719-interreg"
-    model_wflow = "o_rwsinfo"
+    model_wflow = "p_geulrur" #"o_rwsinfo"
     Folder_p = os.path.join(Folder_start, "wflow", model_wflow)
     folder = "members_bias_corrected_revised_daily"
     fn_fig = os.path.join(Folder_start, "Figures", model_wflow, folder)
@@ -51,7 +59,6 @@ if __name__ == "__main__":
     #%%Check how it works for multiple ensemble in xclim #########################
     fn = glob.glob(os.path.join(Folder_p, folder, '*/output.nc'))    
     Qens = create_ensemble(fn).drop_dims('layer') #For now selecting two ensemble
-
     #Qens = create_ensemble(fn[0:3]).drop_dims('layer') #For now selecting two ensemble
     #Qens = Qens.sel(time=slice("1950-10-01", "1955-09-30")) #Hydrological years
     #Qens = Qens.sel(lat=slice(50,50.5), lon=slice(5,5.5)) #Selecting a subsection of lat, lon for now
@@ -65,27 +72,156 @@ if __name__ == "__main__":
     mask_riv = Qens.isel(realization=0, time=0)['Q']>0
     mask_riv = mask_riv.drop(['time','realization'])
 
-    mask_riv.to_netcdf(os.path.join(fn_data_out,'mask_rivers_wflow.nc'))
+    encoding = def_encoding(mask_riv)
+    mask_riv.to_netcdf(os.path.join(fn_data_out,'mask_rivers_wflow.nc'), encoding=encoding)
 
     print("Data loaded")
+    del mask_riv
 
     #%% Getting the block maximas - all, summer, winter
     sub = xclim.indices.generic.select_resample_op(Qens, op='max', freq='AS-Oct')
     summer = xclim.indices.generic.select_resample_op(Qens, op='max', freq='AS-Oct', month=[4,5,6,7,8,9])
     winter = xclim.indices.generic.select_resample_op(Qens, op='max', freq='AS-Oct', month=[10,11,12,1,2,3])
 
+    sub = sub.drop(labels=[sub.time[0].values,sub.time[-1].values], dim = 'time')
+    summer = summer.drop(labels=[summer.time[0].values,summer.time[-1].values], dim = 'time')
+    winter = winter.drop(labels=[winter.time[0].values,winter.time[-1].values], dim = 'time')
+
     sub['Q'] = sub['Q'].chunk(chunks={'realization':1, 'time':-1, 'lat':-1, 'lon': -1}) #chunk of about 128 MiB
     summer['Q'] = summer['Q'].chunk(chunks={'realization':1, 'time':-1, 'lat':-1, 'lon': -1}) #chunk of about 128 MiB
     winter['Q'] = winter['Q'].chunk(chunks={'realization':1, 'time':-1, 'lat':-1, 'lon': -1}) #chunk of about 128 MiB
 
-
-    summer.to_netcdf(os.path.join(fn_data_out,'AM_summer_4_9_Oct.nc'))
-    winter.to_netcdf(os.path.join(fn_data_out,'AM_winter_10_3_Oct.nc'))
+    encoding = def_encoding(summer)
+    summer.to_netcdf(os.path.join(fn_data_out,'AM_summer_4_9_Oct.nc'), encoding=encoding)
+    encoding = def_encoding(winter)
+    winter.to_netcdf(os.path.join(fn_data_out,'AM_winter_10_3_Oct.nc'), encoding=encoding)
+    encoding = def_encoding(sub)
+    sub.to_netcdf(os.path.join(fn_data_out,'AM_year_Oct.nc'), encoding=encoding)
 
     print("Block maxima done")
+    del sub, summer, winter
+
+    #%%
+    #We load the data
+    sub = xr.open_dataset(os.path.join(fn_data_out,'AM_year_Oct.nc')).load()
+    summer = xr.open_dataset(os.path.join(fn_data_out,'AM_summer_4_9_Oct.nc')).load()
+    winter = xr.open_dataset(os.path.join(fn_data_out,'AM_winter_10_3_Oct.nc')).load()
+    # mask_riv = xr.open_dataarray(os.path.join(fn_data_out,'mask_rivers_wflow.nc')).load()
+
+    Ts = [10,50,100,1000]
+    qs = [1-1/10, 1-1/50, 1-1/100, 1-1/1000]
+    
+
+    all_years = stacking_ensemble(sub)
+    summer = stacking_ensemble(summer)
+    winter = stacking_ensemble(winter)
+
+    all_params = xclim.indices.stats.fit(all_years['Q'].chunk(chunks={'time':-1, 'lat':-1, 'lon': -1}), dist="genextreme", method="ML")
+    summer_params = xclim.indices.stats.fit(summer['Q'].chunk(chunks={'time':-1, 'lat':-1, 'lon': -1}), dist="genextreme", method="ML")
+    winter_params = xclim.indices.stats.fit(winter['Q'].chunk(chunks={'time':-1, 'lat':-1, 'lon': -1}), dist="genextreme", method="ML")
+
+    print("GEV models fitted")
+
+    encoding = def_encoding(all_params)    
+    all_params.to_netcdf(os.path.join(fn_data_out,'GEV_year_params_1040years.nc'), encoding=encoding)
+    
+    encoding = def_encoding(summer_params)
+    summer_params.to_netcdf(os.path.join(fn_data_out,'GEV_summer_params_1040years.nc'), encoding=encoding)
+    
+    encoding = def_encoding(winter_params)
+    winter_params.to_netcdf(os.path.join(fn_data_out,'GEV_winter_params_1040years.nc'), encoding=encoding)
+    print('Data saved')
+
+    del all_params, summer_params, winter_params
+
+    # #%% calculating per ensemble
+
+    # #Return periods - Gumbel and GEV and empirical 
+    # T_gumb = xclim.indices.stats.fa(sub['Q'].chunk(chunks={'realization':1, 'time':-1, 'lat':-1, 'lon': -1}), t=Ts, dist="gumbel_r", mode="max")
+    # T_gev = xclim.indices.stats.fa(sub['Q'].chunk(chunks={'realization':1, 'time':-1, 'lat':-1, 'lon': -1}), t=Ts, dist="genextreme", mode="max")
+    # print('Return periods per ensemble done')
+
+    # encoding = def_encoding(T_gumb)
+    # T_gumb.to_netcdf(os.path.join(fn_data_out,'Gumbel_return_periods_per_ensemble.nc'), encoding=encoding)
+    # encoding = def_encoding(T_gev)
+    # T_gev.to_netcdf(os.path.join(fn_data_out,'GEV_return_periods_per_ensemble.nc'), encoding=encoding)
+    # print('Data saved')
+
+    # del T_gumb, T_gev
+
+    #Parameter sensitivities across ensembles
+    params = xclim.indices.stats.fit(sub['Q'].chunk(chunks={'realization':1, 'time':-1, 'lat':-1, 'lon': -1}), dist="genextreme", method="ML")
+    params = params.to_dataset()
+    params['median'] = params['Q'].median(dim='realization')
+    params['loc_range'] = params['Q'].sel(dparams='loc').max(dim='realization') - params['Q'].sel(dparams='loc').min(dim='realization')
+    params['scale_range'] = params['Q'].sel(dparams='scale').max(dim='realization') - params['Q'].sel(dparams='scale').min(dim='realization')
+    params['shape_range'] = params['Q'].sel(dparams='c').max(dim='realization') - params['Q'].sel(dparams='c').min(dim='realization')
+    print("Statistics per ensemble done")
+
+    encoding = def_encoding(params)
+    params.to_netcdf(os.path.join(fn_data_out,'GEV_year_params_per_ensemble.nc'), encoding=encoding)
+    print('Data saved')
+
+    del params, sub
+
+    # #Looking at whether shape changes sign across ensembles
+    # shape_positive = xr.where(params['Q'].sel(dparams='c')>0, 1, 0)
+    # shape_positive_sum = shape_positive.sum(dim='realization') 
+    # shape_positive_sum = shape_positive_sum.where(mask_riv)
+    # shape_positive_sum.to_netcdf(os.path.join(fn_data_out,'GEV_year_params_positive_sum.nc'))
+    # print("Statistics per ensemble done")
+
+    # del shape_positive_sum, shape_positive, params
+
+    # #%%Stacking for all ensembles for 1040 years
+    # # Return periods - all ensembles
+    # all_Tgumb, all_Tgev, all_Temp = spatial_T_analysis(all_years['Q'].chunk(chunks={'time':-1, 'lat':150, 'lon': 150}), Ts)
+    # print("Statistics 1040 years done")
+
+    # encoding = def_encoding(all_Tgumb)
+    # all_Tgumb.to_netcdf(os.path.join(fn_data_out,'Gumbel_return_periods_1040years.nc'), encoding=encoding)
+    # encoding = def_encoding(all_Tgev)
+    # all_Tgev.to_netcdf(os.path.join(fn_data_out,'GEV_return_periods_1040years.nc'), encoding=encoding)
+    # encoding = def_encoding(all_Temp)
+    # all_Temp.to_netcdf(os.path.join(fn_data_out,'EMP_return_periods_1040years.nc'), encoding=encoding)
+    # print('Data saved')
+
+    # del all_years, all_Tgumb, all_Tgev, all_Temp
+
+    # # Return periods - summer
+    # summer_Tgumb, summer_Tgev, summer_Temp = spatial_T_analysis(summer['Q'].chunk(chunks={'time':-1, 'lat':150, 'lon': 150}), Ts)
+    # print("Statistics 1040 years done")
+
+    # encoding = def_encoding(summer_Tgumb)
+    # summer_Tgumb.to_netcdf(os.path.join(fn_data_out,'Gumbel_summer_return_periods_1040years.nc'), encoding=encoding)
+    # encoding = def_encoding(summer_Tgev)
+    # summer_Tgev.to_netcdf(os.path.join(fn_data_out,'GEV_summer_return_periods_1040years.nc'), encoding=encoding)
+    # encoding = def_encoding(summer_Temp)
+    # summer_Temp.to_netcdf(os.path.join(fn_data_out,'EMP_summer_return_periods_1040years.nc'), encoding=encoding)
+    # print('Data saved')
+
+    # del summer, summer_Tgumb, summer_Tgev, summer_Temp
+
+    # # Return periods - winter
+    # winter_Tgumb, winter_Tgev, winter_Temp = spatial_T_analysis(winter['Q'].chunk(chunks={'time':-1, 'lat':150, 'lon': 150}), Ts)
+    # print("Statistics 1040 years done")
+
+    # encoding = def_encoding(winter_Tgumb)
+    # winter_Tgumb.to_netcdf(os.path.join(fn_data_out,'Gumbel_winter_return_periods_1040years.nc'), encoding=encoding)
+    # encoding = def_encoding(winter_Tgev)
+    # winter_Tgev.to_netcdf(os.path.join(fn_data_out,'GEV_winter_return_periods_1040years.nc'), encoding=encoding)
+    # encoding = def_encoding(winter_Temp)
+    # winter_Temp.to_netcdf(os.path.join(fn_data_out,'EMP_winter_return_periods_1040years.nc'), encoding=encoding)
+    # print('Data saved')
+
+    # del winter, winter_Tgumb, winter_Tgev, winter_Temp
+
 
     #%% Month of the extremes #https://github.com/Ouranosinc/xclim/blob/b96daa2a1d390782e71f07e930499a3b218d298b/xclim/indices/_hydrology.py#L224
-    
+    # fn = glob.glob(os.path.join(Folder_p, folder, '*/output.nc'))    
+    # Qens = create_ensemble(fn).drop_dims('layer') #For now selecting two ensemble
+    sub = xr.open_dataset(os.path.join(fn_data_out,'AM_year_Oct.nc'))
+
     datasets_month=[]
     datasets_day=[]
     all_years = [i for i in sub['time'].values]
@@ -104,90 +240,20 @@ if __name__ == "__main__":
         sub_day = sub_day.expand_dims('time')
 
         datasets_month.append(sub_month)
-        datasets_day.append(sub_day)       
+        datasets_day.append(sub_day) 
+        print(f'Year {i} done')
+        del da      
     sub_month = xr.concat(datasets_month, dim='time')#.to_dataset()
     sub_day = xr.concat(datasets_day, dim='time')#.to_dataset()
     sub['month'] = sub_month
     sub['dayofyear'] = sub_day
 
-    sub.to_netcdf(os.path.join(fn_data_out,'AM_datesAM_Oct.nc'))
+
     print('Data saved')
     print("Block maxima dates done")
 
-    #%%
-    all_years = stacking_ensemble(sub)
-    summer = stacking_ensemble(summer)
-    winter = stacking_ensemble(winter)
-
-    all_params = xclim.indices.stats.fit(all_years['Q'].chunk(chunks={'time':-1, 'lat':150, 'lon': 150}), dist="genextreme", method="ML")
-    summer_params = xclim.indices.stats.fit(summer['Q'].chunk(chunks={'time':-1, 'lat':150, 'lon': 150}), dist="genextreme", method="ML")
-    winter_params = xclim.indices.stats.fit(winter['Q'].chunk(chunks={'time':-1, 'lat':150, 'lon': 150}), dist="genextreme", method="ML")
-
-    print("GEV models fitted")
-    
-    all_params.to_netcdf(os.path.join(fn_data_out,'GEV_year_params_1040years.nc'))
-    summer_params.to_netcdf(os.path.join(fn_data_out,'GEV_summer_params_1040years.nc'))
-    winter_params.to_netcdf(os.path.join(fn_data_out,'GEV_winter_params_1040years.nc'))
-    print('Data saved')
-
-
-    #%% calculating per ensemble
-
-    #Return periods - Gumbel and GEV and empirical 
-    T_gumb = xclim.indices.stats.fa(sub['Q'].chunk(chunks={'realization':1, 'time':-1, 'lat':-1, 'lon': -1}), t=Ts, dist="gumbel_r", mode="max")
-    T_gev = xclim.indices.stats.fa(sub['Q'].chunk(chunks={'realization':1, 'time':-1, 'lat':-1, 'lon': -1}), t=Ts, dist="genextreme", mode="max")
-    print('Return periods per ensemble done')
-
-    T_gumb.to_netcdf(os.path.join(fn_data_out,'Gumbel_return_periods_per_ensemble.nc'))
-    T_gev.to_netcdf(os.path.join(fn_data_out,'GEV_return_periods_per_ensemble.nc'))
-    print('Data saved')
-
-    #Parameter sensitivities across ensembles
-    params = xclim.indices.stats.fit(sub['Q'].chunk(chunks={'realization':1, 'time':-1, 'lat':-1, 'lon': -1}), dist="genextreme", method="ML")
-    params = params.to_dataset()
-    params['median'] = params['Q'].median(dim='realization')
-    params['loc_range'] = params['Q'].sel(dparams='loc').max(dim='realization') - params['Q'].sel(dparams='loc').min(dim='realization')
-    params['scale_range'] = params['Q'].sel(dparams='scale').max(dim='realization') - params['Q'].sel(dparams='scale').min(dim='realization')
-    params['shape_range'] = params['Q'].sel(dparams='c').max(dim='realization') - params['Q'].sel(dparams='c').min(dim='realization')
-    print("Statistics per ensemble done")
-
-    params.to_netcdf(os.path.join(fn_data_out,'GEV_year_params_per_ensemble.nc'))
-    print('Data saved')
-
-    #Looking at whether shape changes sign across ensembles
-    shape_positive = xr.where(params['Q'].sel(dparams='c')>0, 1, 0)
-    shape_positive_sum = shape_positive.sum(dim='realization') 
-    shape_positive_sum = shape_positive_sum.where(mask_riv)
-    print("Statistics per ensemble done")
-
-    #%%Stacking for all ensembles for 1040 years
-    # Return periods - all ensembles
-    all_Tgumb, all_Tgev, all_Temp = spatial_T_analysis(all_years['Q'].chunk(chunks={'time':-1, 'lat':150, 'lon': 150}), Ts)
-    print("Statistics 1040 years done")
-
-    all_Tgumb.to_netcdf(os.path.join(fn_data_out,'Gumbel_return_periods_1040years.nc'))
-    all_Tgev.to_netcdf(os.path.join(fn_data_out,'GEV_return_periods_1040years.nc'))
-    all_Temp.to_netcdf(os.path.join(fn_data_out,'EMP_return_periods_1040years.nc'))
-    print('Data saved')
-
-    # Return periods - summer
-    summer_Tgumb, summer_Tgev, summer_Temp = spatial_T_analysis(summer['Q'].chunk(chunks={'time':-1, 'lat':150, 'lon': 150}), Ts)
-    print("Statistics 1040 years done")
-
-    summer_Tgumb.to_netcdf(os.path.join(fn_data_out,'Gumbel_summer_return_periods_1040years.nc'))
-    summer_Tgev.to_netcdf(os.path.join(fn_data_out,'GEV_summer_return_periods_1040years.nc'))
-    summer_Temp.to_netcdf(os.path.join(fn_data_out,'EMP_summer_return_periods_1040years.nc'))
-    print('Data saved')
-
-    # Return periods - winter
-    winter_Tgumb, winter_Tgev, winter_Temp = spatial_T_analysis(winter['Q'].chunk(chunks={'time':-1, 'lat':150, 'lon': 150}), Ts)
-    print("Statistics 1040 years done")
-
-    winter_Tgumb.to_netcdf(os.path.join(fn_data_out,'Gumbel_winter_return_periods_1040years.nc'))
-    winter_Tgev.to_netcdf(os.path.join(fn_data_out,'GEV_winter_return_periods_1040years.nc'))
-    winter_Temp.to_netcdf(os.path.join(fn_data_out,'EMP_winter_return_periods_1040years.nc'))
-    print('Data saved')
-
+    encoding = def_encoding(sub)
+    sub.to_netcdf(os.path.join(fn_data_out,'AM_datesAM_Oct.nc'), encoding=encoding)
 
     et = time.time()
     elapsed_time = et - st

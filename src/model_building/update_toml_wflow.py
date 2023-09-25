@@ -100,7 +100,7 @@ mod.set_config("input.vertical.potential_evaporation", "pet")
 mod.set_config("csv.path", f"{fn_csv}")
 mod.set_config("path_log", f"{fn_log}")
 
-mod.set_config("model.reinit", "false")
+mod.set_config("model.reinit", False)
 mod.set_config("state.path_input", f"{fn_path_input}")
 
 if timestep == "daily":
