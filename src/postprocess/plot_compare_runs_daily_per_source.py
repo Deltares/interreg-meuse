@@ -51,8 +51,10 @@ source_dic = {
 
 #%% read model 
 
-root = r"p:\11208719-interreg\wflow\o_rwsinfo"
-config_fn = "run_rwsinfo_eobs25.toml"
+# root = r"p:\11208719-interreg\wflow\o_rwsinfo"
+root = r"p:\11208719-interreg\wflow\p_geulrur"
+# config_fn = "run_rwsinfo_eobs25.toml"
+config_fn = "run_geulrur_eobs25.toml"
 yml = r"p:\11208719-interreg\data\data_meuse.yml"
 mod = WflowModel(root = root, config_fn=config_fn, data_libs=["deltares_data", yml], mode = "r")
 
@@ -64,8 +66,11 @@ Folder_p = r"p:\11208719-interreg\wflow"
 #routing runs
 model_runs = {
 
-    "mod": {"case": "o_rwsinfo",
-             "folder": "run_rwsinfo_eobs25"},
+    # "mod": {"case": "o_rwsinfo",
+    #          "folder": "run_rwsinfo_eobs25"},
+
+    "mod": {"case": "p_geulrur",
+             "folder": "run_geulrur_eobs25"},
 }
 
 ### prepare dataset to make plots
@@ -90,7 +95,8 @@ for key in model_runs.keys():
 
 plot_colors = colors[:len(runs_dict)]
 
-caserun = "historic_daily_rwsinfo"   
+# caserun = "historic_daily_rwsinfo2"   
+caserun = "historic_daily_geulrur"   
 Folder_plots = r"d:\interreg\Plots" + "\\" + f"{caserun}"
 
 if not os.path.exists(Folder_plots):
@@ -154,6 +160,8 @@ for source in source_dic:
     start_3 =  '2015-01-01'
     end_3 = '2015-12-31'
 
+    #empty df for performance
+    df_perf_source = pd.DataFrame()
     for station_id in ds.stations.values:
         print(station_id)
         try: 
@@ -173,8 +181,29 @@ for source in source_dic:
             #start later for for warming up
             dsq = ds['Q'].sel(stations = station_id, runs = runs_sel + ["Obs."]).sel(time = slice('1981-01-01', '2021-12-31')).to_dataset().dropna(dim='time')
             if len(dsq.time)>366*2:
-                plot_signatures(dsq, runs_sel, plot_colors, Folder_plots, f"{source}_{station_name}_{station_id}" , save=True, window=7)
+                dsq_perf = plot_signatures(dsq, runs_sel, plot_colors, Folder_plots, f"{source}_{station_name}_{station_id}" , save=True, window=7)
+                dsq_perf_station = dsq_perf["performance"].sel(runs = key).to_dataframe()
+                df_perf_source = pd.concat([df_perf_source, dsq_perf_station])
                 plt.close()
+            
+    df_perf_source.to_csv(os.path.join(Folder_plots, f"performance_{source}.csv"))
 
 
 
+#%% nse scores in report
+
+metrics_sel = ["NSE", "KGE", "NSElog", "NM7Q", "MAXQ"]
+
+df_score = pd.DataFrame()
+
+for source in source_dic:
+    df_perf_source = pd.read_csv(os.path.join(Folder_plots, f"performance_{source}.csv"))
+    df_perf_source.index = df_perf_source["metrics"]
+
+    for station_name in np.unique(df_perf_source.station_name):
+        print(station_name)
+
+        df_score_st = np.round(df_perf_source[df_perf_source.station_name == station_name].loc[metrics_sel][["performance"]],2).transpose().rename({"performance": station_name})
+        df_score = pd.concat([df_score, df_score_st])
+
+df_score.to_csv(os.path.join(Folder_plots, "performance_summary.csv"))

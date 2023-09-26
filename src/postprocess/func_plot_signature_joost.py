@@ -22,10 +22,10 @@ def rsquared(x, y):
 def plot_signatures(
     dsq, labels, colors,
     Folder_out, station_name, lw = 0.8, fs = 8,
-    save = False, window=7):
+    save = False, window=7, max_daily=False):
 
     #first calc some signatures
-    dsq['metrics'] = ['KGE', 'NSE', 'NSElog', 'RMSE', 'MSE']
+    dsq['metrics'] = ['KGE', 'NSE', 'NSElog', 'RMSE', 'MSE', "NM7Q", "MAXQ"]
     dsq['performance'] = (('runs', 'metrics'), np.zeros((len(dsq.runs), len(dsq.metrics)))*np.nan)
 
     # dsplot = dsq.copy(deep=True)
@@ -123,7 +123,12 @@ def plot_signatures(
 
 
     #max annual axes[4]
-    dsq_max = dsq.sel(time = slice(f"{str(dsq['time.year'][0].values)}-09-01", f"{str(dsq['time.year'][-1].values)}-08-31")).resample(time = 'AS-Sep').max('time')
+    if max_daily == True:
+        #instead of using max hourly value - use a rolling mean to get max daily value
+        dsq_max_rolling = dsq.sel(time = slice(f"{str(dsq['time.year'][0].values)}-09-01", f"{str(dsq['time.year'][-1].values)}-08-31")).rolling(time=24).mean()
+        dsq_max = dsq_max_rolling.resample(time = 'AS-Sep').max('time')
+    else:
+        dsq_max = dsq.sel(time = slice(f"{str(dsq['time.year'][0].values)}-09-01", f"{str(dsq['time.year'][-1].values)}-08-31")).resample(time = 'AS-Sep').max('time')
     for label, color in zip(labels, colors):
         axes[4].plot(dsq_max.Q.sel(runs = 'Obs.'), dsq_max.Q.sel(runs = label), color = color, marker = 'o', linestyle = 'None', linewidth = lw, label = label)
     # axes[4].plot(dsq_max.Q.sel(runs = 'Obs.'), dsq_max.Q.sel(runs = label_01), color = color_01, marker = '.', linestyle = 'None', linewidth = lw, label = label_01)
@@ -179,10 +184,12 @@ def plot_signatures(
     gumbel_p1 = -np.log(-np.log(1.-1./RP1))
     ts = [2., 5.,10.,30.] #,30.,100.,300.,1000.,3000.,10000.,30000.]
     #plot
-    axes[6].plot(gumbel_p1, dsq_max['Q'].sel(runs = 'Obs.').sortby(dsq_max['Q'].sel(runs = 'Obs.')), marker = '+', color = 'k', linestyle = 'None', label = 'Obs.', markersize = 6)
+    # axes[6].plot(gumbel_p1, dsq_max['Q'].sel(runs = 'Obs.').sortby(dsq_max['Q'].sel(runs = 'Obs.')), marker = '+', color = 'k', linestyle = 'None', label = 'Obs.', markersize = 6)
     for label, color in zip(labels, colors):
         axes[6].plot(gumbel_p1, dsq_max['Q'].sel(runs = label).sortby(dsq_max['Q'].sel(runs = label)), marker = 'o', color = color, linestyle = 'None', label = label, markersize = 4)
     # axes[6].plot(gumbel_p1, dsq_max['Q'].sel(runs = label_01).sortby(dsq_max['Q'].sel(runs = label_01)), marker = '.', color = color_01, linestyle = 'None', label = label_01, markersize = 3)
+    #obs
+    axes[6].plot(gumbel_p1, dsq_max['Q'].sel(runs = 'Obs.').sortby(dsq_max['Q'].sel(runs = 'Obs.')), marker = '+', color = 'k', linestyle = 'None', label = 'Obs.', markersize = 6)
 
     for t in ts:
         axes[6].axvline(-np.log(-np.log(1-1./t)),c='0.5', alpha=0.4)
@@ -190,6 +197,17 @@ def plot_signatures(
 
     axes[6].set_ylabel('max. annual Q (m$^3$s$^{-1}$)', fontsize = fs)
     axes[6].set_xlabel('Plotting position and associated return period', fontsize = fs)
+
+    #perf indi
+    for label in labels:
+        #gesorteerd in de tijd !!
+        obs_maxq = dsq_max['Q'].sel(runs = 'Obs.').sortby(dsq_max['Q'].sel(runs = 'Obs.'))
+        sim_maxq = dsq_max['Q'].sel(runs = label).sortby(dsq_max['Q'].sel(runs = label))
+        #reindex
+        sim_maxq = sim_maxq.assign_coords({"sorted_time": ("time", np.arange(0, len(sim_maxq.time)))}).swap_dims({"time":"sorted_time"})
+        obs_maxq = obs_maxq.assign_coords({"sorted_time": ("time", np.arange(0, len(obs_maxq.time)))}).swap_dims({"time":"sorted_time"})
+        nse_maxq = hydromt.stats.nashsutcliffe(sim_maxq, obs_maxq, dim = "sorted_time")
+        dsq['performance'].loc[dict(runs = label, metrics = 'MAXQ')] = nse_maxq
 
 
     #gumbel low axes[7]
@@ -201,10 +219,12 @@ def plot_signatures(
     gumbel_p1 = -np.log(-np.log(1.-1./RP1))
     ts = [2., 5.,10.,30.] #,30.,100.,300.,1000.,3000.,10000.,30000.]
     #plot
-    axes[7].plot(gumbel_p1, dsq_nm7q['Q'].sel(runs = 'Obs.').sortby(dsq_nm7q['Q'].sel(runs = 'Obs.'), ascending=False), marker = '+', color = 'k', linestyle = 'None', label = 'Obs.', markersize = 6)
+    # axes[7].plot(gumbel_p1, dsq_nm7q['Q'].sel(runs = 'Obs.').sortby(dsq_nm7q['Q'].sel(runs = 'Obs.'), ascending=False), marker = '+', color = 'k', linestyle = 'None', label = 'Obs.', markersize = 6)
     for label, color in zip(labels, colors):
         axes[7].plot(gumbel_p1, dsq_nm7q['Q'].sel(runs = label).sortby(dsq_nm7q['Q'].sel(runs = label), ascending=False), marker = 'o', color = color, linestyle = 'None', label = label, markersize = 4)
     # axes[7].plot(gumbel_p1, dsq_nm7q['Q'].sel(runs = label_01).sortby(dsq_nm7q['Q'].sel(runs = label_01), ascending=False), marker = '.', color = color_01, linestyle = 'None', label = label_01, markersize = 3)
+    #obs
+    axes[7].plot(gumbel_p1, dsq_nm7q['Q'].sel(runs = 'Obs.').sortby(dsq_nm7q['Q'].sel(runs = 'Obs.'), ascending=False), marker = '+', color = 'k', linestyle = 'None', label = 'Obs.', markersize = 6)
 
     for t in ts:
         axes[7].axvline(-np.log(-np.log(1-1./t)),c='0.5', alpha=0.4)
@@ -212,6 +232,17 @@ def plot_signatures(
 
     axes[7].set_ylabel('NM7Q (m$^3$s$^{-1}$)', fontsize = fs)
     axes[7].set_xlabel('Plotting position and associated return period', fontsize = fs)
+
+    #perf indi
+    for label in labels:
+        #gesorteerd in de tijd !!
+        sim_nm7q = dsq_nm7q['Q'].sel(runs = label).sortby(dsq_nm7q['Q'].sel(runs = label), ascending=False)
+        obs_nm7q = dsq_nm7q['Q'].sel(runs = 'Obs.').sortby(dsq_nm7q['Q'].sel(runs = 'Obs.'), ascending=False)
+        #reindex 
+        sim_nm7q = sim_nm7q.assign_coords({"sorted_time": ("time", np.arange(0, len(sim_nm7q.time)))}).swap_dims({"time":"sorted_time"})
+        obs_nm7q = obs_nm7q.assign_coords({"sorted_time": ("time", np.arange(0, len(obs_nm7q.time)))}).swap_dims({"time":"sorted_time"})
+        nse_nm7q = hydromt.stats.nashsutcliffe(sim_nm7q, obs_nm7q, dim = "sorted_time")
+        dsq['performance'].loc[dict(runs = label, metrics = 'NM7Q')] = nse_nm7q
 
 
     #cum axes[8]
@@ -251,6 +282,8 @@ def plot_signatures(
     if save:
         plt.savefig(os.path.join(Folder_out, f"signatures_{station_name}.png"), dpi = 300)
         plt.close()
+
+    return dsq
 
 
 def plot_hydro(

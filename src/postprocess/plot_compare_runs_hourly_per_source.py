@@ -53,8 +53,10 @@ source_dic = {
 
 #%% read model 
 
-root = r"p:\11208719-interreg\wflow\o_rwsinfo"
-config_fn = "run_rwsinfo.toml"
+# root = r"p:\11208719-interreg\wflow\o_rwsinfo"
+root = r"p:\11208719-interreg\wflow\p_geulrur"
+# config_fn = "run_rwsinfo.toml"
+config_fn = "run_geulrur.toml"
 yml = r"p:\11208719-interreg\data\data_meuse.yml"
 mod = WflowModel(root = root, config_fn=config_fn, data_libs=["deltares_data", yml], mode = "r")
 
@@ -66,8 +68,12 @@ Folder_p = r"p:\11208719-interreg\wflow"
 model_runs = {
 
     #rwsinfo 
-    "mod": {"case": "o_rwsinfo",
-             "folder": "run_rwsinfo"},
+    # "mod": {"case": "o_rwsinfo",
+    #          "folder": "run_rwsinfo"},
+
+    "mod": {"case": "p_geulrur",
+             "folder": "run_geulrur"},
+
 
 }
 
@@ -96,7 +102,8 @@ plot_colors = colors[:len(runs_dict)]
 #%%
 
 
-caserun = "historic_hourly_o_rwsinfo"
+# caserun = "historic_hourly_o_rwsinfo2"
+caserun = "historic_hourly_p_geulrur"
 
 Folder_plots = r"d:\interreg\Plots" + "\\" + f"{caserun}"
 
@@ -111,6 +118,7 @@ var = "Q"
 start = '2005-01-01 01:00:00'
 end = '2017-12-31 23:00:00'
 rng = pd.date_range(start, end, freq="H")
+
 
 for source in source_dic:
     print(source)
@@ -163,6 +171,8 @@ for source in source_dic:
     start_3 =  '2015-01-01'
     end_3 = '2015-12-31'
 
+    #empty df for performance
+    df_perf_source = pd.DataFrame()
     for station_id in ds.stations.values:
         print(station_id)
         try: 
@@ -186,11 +196,35 @@ for source in source_dic:
             dsq = ds['Q'].sel(stations = station_id).sel(time = slice('2006-01-01', "2017-12-31"), runs=runs_sel + ["Obs."]).to_dataset().dropna(dim='time')
             #load in memory 
             # dsq = dsq.load()
-            plot_signatures(dsq, runs_sel + ["Obs."], plot_colors, Folder_plots, f"{source}_{station_name}_{station_id}", save=True, window=7*24)
+            if ((source == "rwsinfo") and (station_id == 16)) | (source == "spw" and (station_id ==7319)): #sambre and st pieter
+                max_daily=True
+            else: 
+                max_daily=False
+            dsq_perf = plot_signatures(dsq, runs_sel + ["Obs."], plot_colors, 
+                            Folder_plots, f"{source}_{station_name}_{station_id}", 
+                            save=True, window=7*24, max_daily=max_daily)
+            dsq_perf_station = dsq_perf["performance"].sel(runs = key).to_dataframe()
+            df_perf_source = pd.concat([df_perf_source, dsq_perf_station])
             plt.close()
         else:
             print(f"no obs data for {station_name}")
 
+    df_perf_source.to_csv(os.path.join(Folder_plots, f"performance_{source}.csv"))
+    
+#%% nse scores in report
 
+metrics_sel = ["NSE", "KGE", "NSElog", "NM7Q", "MAXQ"]
 
+df_score = pd.DataFrame()
 
+for source in source_dic:
+    df_perf_source = pd.read_csv(os.path.join(Folder_plots, f"performance_{source}.csv"))
+    df_perf_source.index = df_perf_source["metrics"]
+
+    for station_name in np.unique(df_perf_source.station_name):
+        print(station_name)
+
+        df_score_st = np.round(df_perf_source[df_perf_source.station_name == station_name].loc[metrics_sel][["performance"]],2).transpose().rename({"performance": station_name})
+        df_score = pd.concat([df_score, df_score_st])
+
+df_score.to_csv(os.path.join(Folder_plots, "performance_summary.csv"))
