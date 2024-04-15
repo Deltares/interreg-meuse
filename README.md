@@ -1,7 +1,11 @@
-interreg-meuse
+Interreg-meuse
 ==============================
 
-extreme streamflow statistics meuse
+This repository contains the code produced by Deltares for the EMFloodResilience project within the Interreg V-A Euroregio. The code was written on behalf of Rijkswaterstaat under the EMfloodResilience project. The results from the project and report are available at: https://open.rijkswaterstaat.nl/open-overheid/onderzoeksrapporten/@268763/evaluation-discharge-extremes-the-meuse/  
+
+Acknowledgments
+--------------------
+The EMfloodResilience project is being carried out within the context of Interreg V-A Euregio MeuseRhine and is 90% funded from the European Regional Development Fund.
 
 Project Organization
 --------------------
